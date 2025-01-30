@@ -12,3 +12,4 @@ pytest~=8.3.3
 mkdocs
 mkdocs-material
 mkdocstrings
+mkdocstrings-python
