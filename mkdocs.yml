@@ -1,0 +1,16 @@
+site_name: PyDaaDop Documentation
+theme:
+  name: material
+  features:
+    - navigation.tabs
+
+nav:
+  - Get Started: docs/get-started.md
+  - Concepts: docs/concepts.md
+  - API Documentation: docs/api.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+
