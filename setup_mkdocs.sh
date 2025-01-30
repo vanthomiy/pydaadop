@@ -53,7 +53,7 @@ pip install pydaadop
 ## Basic Usage
 
 \`\`\`python
-from deriven_core import SomeModule
+from pydaadop import SomeModule
 
 result = SomeModule.some_function()
 print(result)
@@ -73,7 +73,7 @@ EOL
 cat > docs/api.md <<EOL
 # API Documentation
 
-::: deriven_core
+::: pydaadop
 EOL
 
 # Create GitHub Actions workflow for deployment
