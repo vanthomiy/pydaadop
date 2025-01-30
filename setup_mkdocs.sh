@@ -1,17 +1,9 @@
 #!/bin/bash
 
-# Exit on error
-set -e
+# Create the docs folder
+mkdir -p docs
 
-echo "🔧 Setting up MkDocs in pydaadop..."
-
-# 1️⃣ Install MkDocs & Plugins
-pip install mkdocs mkdocs-material mkdocstrings[python]
-
-# 2️⃣ Initialize MkDocs in `pydaadop`
-mkdocs new docs
-
-# 3️⃣ Modify mkdocs.yml
+# Create MkDocs configuration file
 cat > mkdocs.yml <<EOL
 site_name: PyDaaDop Documentation
 theme:
@@ -20,32 +12,79 @@ theme:
     - navigation.tabs
 
 nav:
-  - Get Started: docs/get-started.md
-  - Concepts: docs/concepts.md
-  - API Documentation: docs/api.md
+  - Home: index.md
+  - Get Started: get-started.md
+  - Concepts: concepts.md
+  - API Documentation: api.md
 
 plugins:
   - search
   - mkdocstrings:
       default_handler: python
-
 EOL
 
-# 4️⃣ Create Documentation Pages
-mkdir -p docs
-echo "# Get Started" > docs/get-started.md
-echo "# Concepts" > docs/concepts.md
-echo -e "# API Documentation\n\n::: pydaadop" > docs/api.md
+# Create documentation files
+cat > docs/index.md <<EOL
+# Welcome to PyDaaDop
 
-# 5️⃣ Set Up GitHub Actions for Automatic Deployment
+PyDaaDop is a powerful Python package for [describe functionality].
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+
+## Installation
+\`\`\`bash
+pip install pydaadop
+\`\`\`
+EOL
+
+cat > docs/get-started.md <<EOL
+# Get Started
+
+## Installation
+Install the package using:
+
+\`\`\`bash
+pip install pydaadop
+\`\`\`
+
+## Basic Usage
+
+\`\`\`python
+from deriven_core import SomeModule
+
+result = SomeModule.some_function()
+print(result)
+\`\`\`
+EOL
+
+cat > docs/concepts.md <<EOL
+# Core Concepts
+
+## Concept 1
+Explain how this feature works.
+
+## Concept 2
+Explain another key concept.
+EOL
+
+cat > docs/api.md <<EOL
+# API Documentation
+
+::: deriven_core
+EOL
+
+# Create GitHub Actions workflow for deployment
 mkdir -p .github/workflows
 cat > .github/workflows/deploy.yml <<EOL
-name: Deploy MkDocs to GitHub Pages
+name: Deploy MkDocs
 
 on:
   push:
     branches:
-      - main  # Change if needed
+      - main
 
 jobs:
   deploy:
@@ -57,21 +96,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.10'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install mkdocs mkdocs-material mkdocstrings[python]
+        run: pip install mkdocs-material mkdocstrings[python]
 
-      - name: Build and deploy
+      - name: Deploy to GitHub Pages
         run: |
+          mkdocs build
           mkdocs gh-deploy --force
 EOL
 
-# 6️⃣ Commit and Push Changes
-git add .
-git commit -m "Setup MkDocs documentation with GitHub Pages"
-git push origin main  # Adjust branch if needed
-
-echo "✅ MkDocs setup complete! Docs will deploy via GitHub Pages."
+echo "MkDocs setup complete. Run 'mkdocs serve' to preview locally."

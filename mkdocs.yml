@@ -5,12 +5,12 @@ theme:
     - navigation.tabs
 
 nav:
-  - Get Started: docs/get-started.md
-  - Concepts: docs/concepts.md
-  - API Documentation: docs/api.md
+  - Home: index.md
+  - Get Started: get-started.md
+  - Concepts: concepts.md
+  - API Documentation: api.md
 
 plugins:
   - search
   - mkdocstrings:
       default_handler: python
-
