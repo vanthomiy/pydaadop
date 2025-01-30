@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydaadpü"
+version = "0.0.0.1"
+description = "Streamline your Python projects with Dockerized APIs, MongoDB, and Pydantic—simplifying setup and scalability."
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+keywords = ["models", "database", "fastapi", "python"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.9",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+requires-python = ">=3.8"
+
+dependencies = [
+    'asposestorage==1.0.2',
+    'asposestorage==1.0.2',
+    'fastapi==0.115.3',
+    'inflection==0.5.1',
+    'pydantic==2.9.2',
+    'pymongo==4.9.2',
+    'setuptools==75.2.0',
+    'requests==2.32.0',
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

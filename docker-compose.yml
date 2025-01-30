@@ -1,0 +1,22 @@
+services:
+  mongo:
+    image: mongo:latest
+    command: mongod --port ${MONGO_PORT}
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
+    container_name: deriven_test_mongo
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"  # Expose MongoDB on port 27017
+    volumes:
+      - mongo_data:/data/db  # Persist MongoDB data
+    networks:
+      - deriven-test-network  # Shared network
+
+volumes:
+  mongo_data:  # Define a named volume for MongoDB data persistence
+
+networks:
+  deriven-test-network:
+    external: true  # Use the same external network

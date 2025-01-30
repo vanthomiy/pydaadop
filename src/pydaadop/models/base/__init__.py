@@ -1,0 +1,1 @@
+from .base_mongo_model import BaseMongoModel
