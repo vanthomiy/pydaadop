@@ -9,18 +9,41 @@ PyObjectId = str
 
 
 class BaseMongoModel(BaseModel):
-    # This maps _id from MongoDB to id in your application code
+    """
+    Base model for MongoDB documents using Pydantic.
+
+    Attributes:
+        id (Optional[PyObjectId]): The unique identifier for the document, mapped from MongoDB's _id.
+    """
+
     id: Optional[PyObjectId] = Field(default_factory=lambda: str(ObjectId()), alias="_id")
 
     class Config:
-        # Allow aliasing and arbitrary types like ObjectId
+        """
+        Pydantic configuration for the BaseMongoModel.
+
+        Attributes:
+            populate_by_name (bool): Allow aliasing of fields.
+            arbitrary_types_allowed (bool): Allow arbitrary types like ObjectId.
+            json_encoders (dict): Custom JSON encoders for specific types.
+        """
         populate_by_name = True
         arbitrary_types_allowed = True
         json_encoders = {
             ObjectId: str  # Ensures that ObjectId is serialized as string
         }
 
-    def model_dump(self, *args, **kwargs):
+    def model_dump(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Serialize the model to a dictionary, with special handling for datetime and ObjectId fields.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            Dict[str, Any]: The serialized model as a dictionary.
+        """
         # Serialize with conditions: only include 'id' if it is not None
         data = super().model_dump()
 
@@ -42,9 +65,25 @@ class BaseMongoModel(BaseModel):
 
     @staticmethod
     def create_index() -> List[str]:
+        """
+        Define the index fields for the model.
+
+        Returns:
+            List[str]: A list of field names to be indexed.
+        """
         return ["id"]
 
     def model_dump_keys(self, *args, **kwargs) -> Dict[str, Any]:
+        """
+        Serialize the model and filter only the indexed fields.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+
+        Returns:
+            Dict[str, Any]: The serialized model with only the indexed fields.
+        """
         # Get the index fields from the model's create_index method
         index_keys = self.create_index()
 
@@ -57,6 +96,5 @@ class BaseMongoModel(BaseModel):
 
         # Select only the indexed fields
         filtered_data = {key: serialized_data[key] for key in index_keys if key in serialized_data}
-
 
         return filtered_data
