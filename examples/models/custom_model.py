@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from src.deriven_core.models.base import BaseMongoModel
+from pydaadop.models.base import BaseMongoModel
 from examples.models.definitions import Definition1
 
 

@@ -17,7 +17,7 @@ class BulkReadWriteRepository(BaseReadWriteRepository[T]):
     async def create_many(self, items: List[T]) -> InsertManyResult:
         # insert many items into the collection with bulk write
         serialized_items = [item.model_dump(by_alias=True) for item in items]
-        return await self.collection.insert_many(serialized_items)
+        return await self.collection.insert_many(serialized_items, ordered=False)
 
     async def update_many(self, items: List[T]) -> BulkWriteResult:
         # update many items in the collection with bulk write

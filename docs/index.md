@@ -15,9 +15,9 @@ Python dockerized api and database on pydantic (Pydaadop) is a library for Pytho
 
 [Installing Pydaadop](install.md) is as simple as: `pip install pydaadop`
 
-## Who is using Pydantic?
+## Who is using Pydaadop?
 
 No one is using it :(
 
-For a more comprehensive list of open-source projects using Pydantic see the
+For a more comprehensive list of open-source projects using Pydaadop see the
 [list of dependents on github](https://github.com/vanthomiy/pydaadop/network/dependents).

@@ -1,17 +1,15 @@
-// filepath: /e:/Projekte/pydaadop/.vscode/launch.json
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: api.py",
+            "name": "Python-Debugger: Aktuelle Datei",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/examples/setups/quick/api.py",
+            "program": "${file}",
             "console": "integratedTerminal",
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
-            "cwd": "${workspaceFolder}"
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

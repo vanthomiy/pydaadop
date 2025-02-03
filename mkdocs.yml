@@ -48,7 +48,7 @@ theme:
   favicon: 'favicon.png'
 
 repo_name: pydaadop
-repo_url: https://github.com/pydaadop/pydaadop
+repo_url: https://github.com/vanthomiy/pydaadop
 edit_uri: edit/main/docs/
 extra:
   version:
@@ -87,21 +87,18 @@ nav:
 - Get Started:
   - Welcome to Pydaadop: index.md
   - Installation: install.md
-  - Version Policy: version-policy.md
   - Contributing: contributing.md
   - Changelog: changelog.md
 - Concepts:
   - Models: concepts/models.md
 - API Documentation:
-  - Pydaadop:
-    - BaseModel: api/base_model.md
-- Internals:
-  - Architecture: internals/architecture.md
+  - Clients: api/clients.md
 - Examples:
-  - Custom Validators: examples/custom_validators.md
+  - Easy Setup: examples/easy.md
+  - Extended Usage: examples/extended.md
+  - Full Usage: examples/full.md
 - Error Messages:
   - Error Handling: errors/errors.md
-- Pydaadop People: pydaadop_people.md
 
 markdown_extensions:
 - tables
@@ -139,12 +136,17 @@ plugins:
         options:
           members_order: source
           separate_signature: true
-          filters: ["!^_"]
           docstring_options:
             ignore_init_summary: true
           merge_init_into_class: true
           show_signature_annotations: true
           signature_crossrefs: true
+          show_submodules: true
+          show_root_full_path: true
+          show_source: false
+          show_if_no_docstring: true  # Ensures all classes are included
+          docstring_section: classes
+          show_root_toc_entry: false  # Hides module filename in sidebar
         import:
           - url: https://docs.python.org/3/objects.inv
             domains: [py, std]

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.deriven_core.models.base import BaseMongoModel
+from pydaadop.models.base import BaseMongoModel
 from examples.models.definitions import Definition1
 
 

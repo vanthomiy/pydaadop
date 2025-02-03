@@ -33,7 +33,7 @@ class BaseMongoModel(BaseModel):
             ObjectId: str  # Ensures that ObjectId is serialized as string
         }
 
-    def model_dump(self, *args, **kwargs) -> Dict[str, Any]:
+    def model_dump(self, *args: dict, **kwargs: dict) -> Dict[str, Any]:
         """
         Serialize the model to a dictionary, with special handling for datetime and ObjectId fields.
 
@@ -73,7 +73,7 @@ class BaseMongoModel(BaseModel):
         """
         return ["id"]
 
-    def model_dump_keys(self, *args, **kwargs) -> Dict[str, Any]:
+    def model_dump_keys(self, *args: dict, **kwargs: dict) -> Dict[str, Any]:
         """
         Serialize the model and filter only the indexed fields.
 
