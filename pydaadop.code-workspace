@@ -1,0 +1,11 @@
+// filepath: /e:/Projekte/pydaadop/pydaadop.code-workspace
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "python.pythonPath": "${workspaceFolder}/venv/Scripts/python.exe"
+    }
+}

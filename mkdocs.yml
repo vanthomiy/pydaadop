@@ -1,16 +1,150 @@
-site_name: PyDaaDop Documentation
+site_name: Pydaadop
+site_description: Data validation using Python type hints
+strict: true
+site_url: https://docs.pydaadop.dev/
+
 theme:
-  name: material
+  name: 'material'
+  custom_dir: 'docs/theme'
+  palette:
+  - media: "(prefers-color-scheme)"
+    scheme: default
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb
+      name: "Switch to light mode"
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb-outline
+      name: "Switch to dark mode"
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb-auto-outline
+      name: "Switch to system preference"
   features:
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - announce.dismiss
     - navigation.tabs
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.preview
+    - navigation.instant.progress
+    - navigation.path
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - toc.follow
+  logo: 'logo-white.svg'
+  favicon: 'favicon.png'
+
+repo_name: pydaadop
+repo_url: https://github.com/pydaadop/pydaadop
+edit_uri: edit/main/docs/
+extra:
+  version:
+    provider: mike
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback!
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+extra_css:
+  - 'extra/terminal.css'
+  - 'extra/tweaks.css'
+extra_javascript:
+  - 'extra/feedback.js'
+  - 'extra/fluff.js'
+  - 'https://samuelcolvin.github.io/mkdocs-run-code/run_code_main.js'
 
 nav:
-  - Home: index.md
-  - Get Started: get-started.md
-  - Concepts: concepts.md
-  - API Documentation: api.md
+- Get Started:
+  - Welcome to Pydaadop: index.md
+  - Installation: install.md
+  - Version Policy: version-policy.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+- Concepts:
+  - Models: concepts/models.md
+- API Documentation:
+  - Pydaadop:
+    - BaseModel: api/base_model.md
+- Internals:
+  - Architecture: internals/architecture.md
+- Examples:
+  - Custom Validators: examples/custom_validators.md
+- Error Messages:
+  - Error Handling: errors/errors.md
+- Pydaadop People: pydaadop_people.md
+
+markdown_extensions:
+- tables
+- toc:
+    permalink: true
+    title: Page contents
+- admonition
+- pymdownx.details
+- pymdownx.superfences
+- pymdownx.highlight:
+    pygments_lang_class: true
+- pymdownx.extra
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg
+- pymdownx.tabbed:
+    alternate_style: true
+
+watch:
+- src/pydaadop
+
+hooks:
+- 'docs/plugins/main.py'
 
 plugins:
-  - search
-  - mkdocstrings:
-      default_handler: python
+- social
+- mike:
+    alias_type: symlink
+    canonical_version: latest
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [.]
+        options:
+          members_order: source
+          separate_signature: true
+          filters: ["!^_"]
+          docstring_options:
+            ignore_init_summary: true
+          merge_init_into_class: true
+          show_signature_annotations: true
+          signature_crossrefs: true
+        import:
+          - url: https://docs.python.org/3/objects.inv
+            domains: [py, std]

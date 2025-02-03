@@ -11,5 +11,11 @@ motor~=3.6.0
 pytest~=8.3.3
 mkdocs
 mkdocs-material
+mike
 mkdocstrings
 mkdocstrings-python
+autoflake
+pyupgrade
+cairosvg
+pydantic_extra_types
+pydantic_settings
