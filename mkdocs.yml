@@ -38,6 +38,7 @@ theme:
     - navigation.instant.prefetch
     - navigation.instant.preview
     - navigation.instant.progress
+    - navigation.expand
     - navigation.path
     - navigation.sections
     - navigation.top
@@ -92,7 +93,22 @@ nav:
 - Concepts:
   - Models: concepts/models.md
 - API Documentation:
-  - Clients: api/clients.md
+  - Clients:  
+    - Client Factory: api/clients/client_api_factory.md
+    - Base Client: api/clients/base_api_client.md
+    - Read Client: api/clients/read_api_client.md
+    - Read Write Client: api/clients/read_write_api_client.md
+    - Many Read Write Client: api/clients/many_read_write_api_client.md
+  - Database: api/database.md
+  - Definitions: api/definitions.md
+  - Factories: api/factories.md
+  - Models: api/models.md
+  - Queries: api/queries.md
+  - Repositories: api/repositories.md
+  - Routes: api/routes.md
+  - Services: api/services.md
+  - Utils: api/utils.md
+
 - Examples:
   - Easy Setup: examples/easy.md
   - Extended Usage: examples/extended.md
