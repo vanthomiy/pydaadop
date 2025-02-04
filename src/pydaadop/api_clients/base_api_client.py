@@ -28,7 +28,7 @@ class BaseApiClient(Generic[T]):
         self.model_class = model_class
         self.headers = headers or {}
 
-    def _request(self, method: str, endpoint: str, **kwargs) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+    def _request(self, method: str, endpoint: str, **kwargs: dict) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """
         Sends a request to the API.
 
