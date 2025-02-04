@@ -15,7 +15,7 @@ origins = [
     # Add other origins as necessary
 ]
 
-# map endpoints to routers changes
+# map endpoints to routers
 endpoint_models = [TestModel, TestModel2]
 
 routers = []
