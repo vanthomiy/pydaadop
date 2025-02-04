@@ -2,8 +2,8 @@ name: Deploy MkDocs Documentation to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "docs-update-v*"  # Runs when a tag like quick-setup-v1.0.0 is pushed
 
 jobs:
   build:
