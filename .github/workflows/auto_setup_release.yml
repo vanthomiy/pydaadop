@@ -1,0 +1,34 @@
+name: Auto Setup Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Create Quick Setup Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare release folder
+        run: |
+          mkdir quick-setup
+          cp examples/example.env quick-setup/.env
+          cp examples/setups/quick/api.py quick-setup/api.py
+          cp examples/setups/quick/client.py quick-setup/client.py
+          cp examples/requirements.txt quick-setup/requirements.txt
+          cp examples/docker-compose.yml quick-setup/docker-compose.yml
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Quick Setup Release ${{ github.ref_name }}
+          body: "Automated release for Quick Setup."
+          files: quick-setup/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
