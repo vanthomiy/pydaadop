@@ -20,3 +20,4 @@ cairosvg
 pydantic_extra_types
 pydantic_settings
 mkdocs-swagger-ui-tag
+tomli
