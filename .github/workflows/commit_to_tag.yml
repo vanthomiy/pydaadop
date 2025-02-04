@@ -39,7 +39,7 @@ jobs:
             VERSION="v1.0.0"
           else
             VERSION=$(echo $LAST_TAG | sed -E 's/.*-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/')
-            VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++; print $0}')
+            VERSION=v$(echo $VERSION | awk -F. -v OFS=. '{$NF++; print $0}')
           fi
 
           NEW_TAG="${TAG_PREFIX}-${VERSION}"

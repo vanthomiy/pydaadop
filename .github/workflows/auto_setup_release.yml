@@ -3,7 +3,7 @@ name: Auto Setup Release
 on:
   push:
     tags:
-      - "quick-setup-v*"  # Runs when a tag like quick-setup-v1.0.0 is pushed
+      - "quick-setup-v1.0.1"  # Runs when a tag like quick-setup-v1.0.0 is pushed
 
 
 jobs:
