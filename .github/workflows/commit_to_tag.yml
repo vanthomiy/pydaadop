@@ -23,8 +23,8 @@ jobs:
           elif [[ "$COMMIT_MSG" == Release:doc-update* ]]; then
             TAG_PREFIX="doc-update"
           else
-            echo "No release prefix found in commit message."
-            exit 1
+            echo "No release prefix found in commit message. Skipping tag creation."
+            exit 0  # Exit without error
           fi
 
           # Retrieve last tag matching the pattern for the project
