@@ -17,7 +17,7 @@ jobs:
       - name: Prepare release folder
         run: |
           mkdir quick-setup
-          cp examples/example.env quick-setup/.env
+          cp examples/example.env quick-setup/example.env
           cp examples/setups/quick/api.py quick-setup/api.py
           cp examples/setups/quick/client.py quick-setup/client.py
           cp examples/requirements.txt quick-setup/requirements.txt
