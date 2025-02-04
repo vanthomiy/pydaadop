@@ -18,9 +18,9 @@ jobs:
           echo "Commit Message: $COMMIT_MSG"
           
           # Get the release name (either 'quick-setup' or 'doc-update')
-          if [[ "$COMMIT_MSG" == Release: quick-setup* ]]; then
+          if [[ "$COMMIT_MSG" =~ ^[[:space:]]*Release:[[:space:]]*quick-setup ]]; then
             TAG_PREFIX="quick-setup"
-          elif [[ "$COMMIT_MSG" == Release: doc-update* ]]; then
+          elif [[ "$COMMIT_MSG" =~ ^[[:space:]]*Release:[[:space:]]*doc-update ]]; then
             TAG_PREFIX="doc-update"
           else
             echo "No release prefix found in commit message. Skipping tag creation."
@@ -32,7 +32,7 @@ jobs:
           
           # Increment the version
           if [[ -z "$LAST_TAG" ]]; then
-            VERSION="1.0.0"  # Default to 1.0.0 if no tags exist
+            VERSION="v1.0.0"  # Default to 1.0.0 if no tags exist
           else
             # Extract the current version from the last tag
             VERSION=$(echo $LAST_TAG | sed -E 's/.*-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/')
@@ -40,7 +40,7 @@ jobs:
           fi
           
           # Construct the new tag
-          NEW_TAG="${TAG_PREFIX}-v${VERSION}"
+          NEW_TAG="${TAG_PREFIX}-${VERSION}"
 
           # Tag the commit
           git tag $NEW_TAG
