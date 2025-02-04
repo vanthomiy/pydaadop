@@ -3,47 +3,47 @@ name: Create Tag from Commit Message with Incremented Version
 on:
   push:
     branches:
-      - main  # Or your preferred branch
+      - main
 
 jobs:
   create-tag:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensures all tags are fetched
 
-      - name: Get commit message
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Get commit message and determine tag
         run: |
           COMMIT_MSG=$(git log -1 --pretty=%B)
           echo "Commit Message: $COMMIT_MSG"
           
-          # Get the release name (either 'quick-setup' or 'doc-update')
           if [[ "$COMMIT_MSG" =~ ^[[:space:]]*Release:[[:space:]]*quick-setup ]]; then
             TAG_PREFIX="quick-setup"
           elif [[ "$COMMIT_MSG" =~ ^[[:space:]]*Release:[[:space:]]*doc-update ]]; then
             TAG_PREFIX="doc-update"
           else
             echo "No release prefix found in commit message. Skipping tag creation."
-            exit 0  # Exit without error
+            exit 0
           fi
 
-          # Retrieve last tag matching the pattern for the project
           LAST_TAG=$(git tag -l "${TAG_PREFIX}-v*" | sort -V | tail -n 1)
-          
-          # Increment the version
+
           if [[ -z "$LAST_TAG" ]]; then
-            VERSION="v1.0.0"  # Default to 1.0.0 if no tags exist
+            VERSION="v1.0.0"
           else
-            # Extract the current version from the last tag
             VERSION=$(echo $LAST_TAG | sed -E 's/.*-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/')
             VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++; print $0}')
           fi
-          
-          # Construct the new tag
+
           NEW_TAG="${TAG_PREFIX}-${VERSION}"
+          echo "Creating new tag: $NEW_TAG"
 
-          # Tag the commit
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
-
-          echo "Created new tag: $NEW_TAG"
+          git tag -a "$NEW_TAG" -m "Auto-generated tag"
+          git push origin "$NEW_TAG"
