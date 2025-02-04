@@ -115,7 +115,10 @@ nav:
   - Utils: api/utils.md
 
 - Examples:
-  - Quick Setup: examples/quick.md
+  - Quick Setup:
+    - Auto Setup: examples/quick_auto.md
+    - Manual Setup: examples/quick_manual.md
+    - Result: examples/quick_results.md
   - Extended Usage: examples/extended.md
   - Full Usage: examples/full.md
 - Error Messages:
