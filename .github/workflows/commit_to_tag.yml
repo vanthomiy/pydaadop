@@ -52,7 +52,10 @@ jobs:
           echo "Creating new tag: $NEW_TAG"
 
           git tag -a "$NEW_TAG" -m "Auto-generated tag"
-          git push origin "$NEW_TAG"
+      - name: Create and Push Tag
+        run: |
+          git tag -a "$NEW_TAG" -m "Auto-generated tag"
+          git push --follow-tags origin "$NEW_TAG"
 
       - name: Wait for Tag Push to be Processed
         run: sleep 10
