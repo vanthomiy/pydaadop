@@ -20,7 +20,7 @@ endpoint_models = [TestModel, TestModel2]
 
 routers = []
 
-# add routers to app
+# add routers to app changes
 for endpoint_model in endpoint_models:
     router = BulkReadWriteRouter(endpoint_model)
     routers.append(router)
