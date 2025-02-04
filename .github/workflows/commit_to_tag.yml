@@ -1,0 +1,49 @@
+name: Create Tag from Commit Message with Incremented Version
+
+on:
+  push:
+    branches:
+      - main  # Or your preferred branch
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get commit message
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Commit Message: $COMMIT_MSG"
+          
+          # Get the release name (either 'quick-setup' or 'doc-update')
+          if [[ "$COMMIT_MSG" == Release:quick-setup* ]]; then
+            TAG_PREFIX="quick-setup"
+          elif [[ "$COMMIT_MSG" == Release:doc-update* ]]; then
+            TAG_PREFIX="doc-update"
+          else
+            echo "No release prefix found in commit message."
+            exit 1
+          fi
+
+          # Retrieve last tag matching the pattern for the project
+          LAST_TAG=$(git tag -l "${TAG_PREFIX}-v*" | sort -V | tail -n 1)
+          
+          # Increment the version
+          if [[ -z "$LAST_TAG" ]]; then
+            VERSION="v1.0.0"  # Default to 1.0.0 if no tags exist
+          else
+            # Extract the current version from the last tag
+            VERSION=$(echo $LAST_TAG | sed -E 's/.*-v([0-9]+\.[0-9]+\.[0-9]+)$/\1/')
+            VERSION=$(echo $VERSION | awk -F. -v OFS=. '{$NF++; print $0}')
+          fi
+          
+          # Construct the new tag
+          NEW_TAG="${TAG_PREFIX}-v${VERSION}"
+
+          # Tag the commit
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
+
+          echo "Created new tag: $NEW_TAG"
