@@ -2,8 +2,8 @@ name: Auto Setup Release
 
 on:
   push:
-    tags:
-      - "quick-setup-v*"  # Runs when a tag like quick-setup-v1.0.0 is pushed
+    branches:
+      - main
 
 jobs:
   release:
