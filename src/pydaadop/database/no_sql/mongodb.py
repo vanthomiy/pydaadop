@@ -13,7 +13,35 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase, AsyncI
 T = TypeVar("T", bound=BaseMongoModel)
 
 class BaseMongoDatabase:
+    """
+    Base class for MongoDB database operations.
+
+    This class provides basic functionality to interact with a MongoDB database using
+    Motor, an asynchronous MongoDB driver for Python.
+
+    Attributes:
+        model (Type[T]): The model class that represents the MongoDB collection.
+        database_name (str): The name of the database to connect to.
+        client (AsyncIOMotorClient): The Motor client instance.
+        db (AsyncIOMotorDatabase): The Motor database instance.
+        collection (AsyncIOMotorCollection): The Motor collection instance.
+
+    Example:
+        ```python
+        from myapp.models import MyModel
+        from myapp.database.no_sql.mongodb import BaseMongoDatabase
+
+        db = BaseMongoDatabase(model=MyModel, database_name="my_database")
+        ```
+    """
     def __init__(self, model: Type[T], database_name: str = "deriven-database"):
+        """
+        Initializes the BaseMongoDatabase instance.
+
+        Args:
+            model (Type[T]): The model class that represents the MongoDB collection.
+            database_name (str): The name of the database to connect to. Defaults to "deriven-database".
+        """
         self.model = model
         uri = env_manager.get_mongo_uri()
         self.client: AsyncIOMotorClient  = AsyncIOMotorClient(uri)
@@ -22,6 +50,18 @@ class BaseMongoDatabase:
         self.ensure_indexes()
 
     def ensure_indexes(self):
+        """
+        Ensures that the necessary indexes are created for the collection.
+
+        This method retrieves the index keys from the model and creates a unique index
+        for the collection. If the only key is "id", no index is created. If "id" is
+        present among other keys, it is replaced with "_id".
+
+        Example:
+            ```python
+            db.ensure_indexes()
+            ```
+        """
         # Get the index based on the model
         keys = self.model.create_index()
 

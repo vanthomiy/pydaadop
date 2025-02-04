@@ -38,11 +38,11 @@ theme:
     - navigation.instant.prefetch
     - navigation.instant.preview
     - navigation.instant.progress
-    - navigation.expand
     - navigation.path
-    - navigation.sections
     - navigation.top
     - navigation.tracking
+    - navigation.expand
+    - navigation.sections
     - search.suggest
     - toc.follow
   logo: 'logo-white.svg'
@@ -99,10 +99,15 @@ nav:
     - Read Client: api/clients/read_api_client.md
     - Read Write Client: api/clients/read_write_api_client.md
     - Many Read Write Client: api/clients/many_read_write_api_client.md
-  - Database: api/database.md
-  - Definitions: api/definitions.md
-  - Factories: api/factories.md
-  - Models: api/models.md
+  - Database:
+    - Mongo Database: api/database/base_mongo_database.md
+  - Definitions: 
+    - Constraints: api/definitions/constraints.md
+  - Models:
+    - Base Mongo Model: api/models/base_mongo_model.md
+    - Display Info:
+      - Item: api/models/display/display_item_info.md
+      - Query: api/models/display/display_query_info.md
   - Queries: api/queries.md
   - Repositories: api/repositories.md
   - Routes: api/routes.md
@@ -110,7 +115,7 @@ nav:
   - Utils: api/utils.md
 
 - Examples:
-  - Easy Setup: examples/easy.md
+  - Quick Setup: examples/quick.md
   - Extended Usage: examples/extended.md
   - Full Usage: examples/full.md
 - Error Messages:
@@ -132,7 +137,12 @@ markdown_extensions:
     emoji_generator: !!python/name:material.extensions.emoji.to_svg
 - pymdownx.tabbed:
     alternate_style: true
-
+- pymdownx.magiclink
+- attr_list
+- md_in_html  # Enables Jinja inside Markdown
+- pymdownx.snippets:
+    check_paths: true
+- pymdownx.superfences
 watch:
 - src/pydaadop
 
@@ -141,6 +151,7 @@ hooks:
 
 plugins:
 - social
+- swagger-ui-tag
 - mike:
     alias_type: symlink
     canonical_version: latest

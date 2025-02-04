@@ -1,0 +1,463 @@
+openapi: 3.1.0
+info:
+  title: FastAPI
+  version: 0.1.0
+paths:
+  /basemongomodel/display-info/query/:
+    get:
+      tags:
+        - BaseMongoModel
+      summary: Get Display Query Info
+      operationId: get_display_query_info_basemongomodel_display_info_query__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisplayQueryInfo'
+  /basemongomodel/display-info/item/:
+    get:
+      tags:
+        - BaseMongoModel
+      summary: Get Display Item Info
+      operationId: get_display_item_info_basemongomodel_display_info_item__get
+      parameters:
+        - name: range_by
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - _id
+                const: _id
+                type: string
+              - type: 'null'
+            title: Range By
+        - name: gte_value
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+                minLength: 1
+                maxLength: 100
+              - type: 'null'
+            title: Gte Value
+        - name: lte_value
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+                minLength: 1
+                maxLength: 100
+              - type: 'null'
+            title: Lte Value
+        - name: search
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Search
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisplayItemInfo'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /basemongomodel/:
+    get:
+      tags:
+        - BaseMongoModel
+      summary: Get All
+      operationId: get_all_basemongomodel__get
+      parameters:
+        - name: sort_by
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - _id
+                const: _id
+                type: string
+              - type: 'null'
+            title: Sort By
+        - name: sort_order
+          in: query
+          required: false
+          schema:
+            enum:
+              - asc
+              - desc
+            type: string
+            default: asc
+            title: Sort Order
+        - name: range_by
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - _id
+                const: _id
+                type: string
+              - type: 'null'
+            title: Range By
+        - name: gte_value
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+                minLength: 1
+                maxLength: 100
+              - type: 'null'
+            title: Gte Value
+        - name: lte_value
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+                minLength: 1
+                maxLength: 100
+              - type: 'null'
+            title: Lte Value
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            title: Page
+        - name: page_size
+          in: query
+          required: false
+          schema:
+            type: integer
+            maximum: 100000
+            minimum: 1
+            default: 10
+            title: Page Size
+        - name: search
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Search
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BaseMongoModel'
+                title: Response Get All Basemongomodel  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /basemongomodel/select/:
+    get:
+      tags:
+        - BaseMongoModel
+      summary: Get All Select
+      operationId: get_all_select_basemongomodel_select__get
+      parameters:
+        - name: selected_field
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - id
+                const: id
+                type: string
+              - type: 'null'
+            title: Selected Field
+        - name: range_by
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - _id
+                const: _id
+                type: string
+              - type: 'null'
+            title: Range By
+        - name: gte_value
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+                minLength: 1
+                maxLength: 100
+              - type: 'null'
+            title: Gte Value
+        - name: lte_value
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+                minLength: 1
+                maxLength: 100
+              - type: 'null'
+            title: Lte Value
+        - name: sort_by
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - _id
+                const: _id
+                type: string
+              - type: 'null'
+            title: Sort By
+        - name: sort_order
+          in: query
+          required: false
+          schema:
+            enum:
+              - asc
+              - desc
+            type: string
+            default: asc
+            title: Sort Order
+        - name: search
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Search
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                title: Response Get All Select Basemongomodel Select  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /basemongomodel/exists/:
+    get:
+      tags:
+        - BaseMongoModel
+      summary: Item Exists
+      operationId: item_exists_basemongomodel_exists__get
+      parameters:
+        - name: id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: boolean
+                title: Response Item Exists Basemongomodel Exists  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /basemongomodel/item/:
+    get:
+      tags:
+        - BaseMongoModel
+      summary: Get Item
+      operationId: get_item_basemongomodel_item__get
+      parameters:
+        - name: id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseMongoModel'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    BaseMongoModel:
+      properties:
+        _id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: ' Id'
+      type: object
+      title: BaseMongoModel
+      description: |-
+        Base model for MongoDB documents using Pydantic.
+
+        Attributes:
+            id (Optional[PyObjectId]): The unique identifier for the document, mapped from MongoDB's _id.
+    DisplayFilterAttributeInfo:
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Name
+          description: Name of the filter attribute
+        type:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Type
+          description: Data type of the filter attribute
+        allowed_values:
+          anyOf:
+            - items:
+                type: string
+              type: array
+            - type: 'null'
+          title: Allowed Values
+          description: List of allowed values for the filter attribute
+        parent:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Parent
+          description: Parent filter attribute
+      type: object
+      title: DisplayFilterAttributeInfo
+    DisplayFilterInfo:
+      properties:
+        filter_attributes:
+          items:
+            $ref: '#/components/schemas/DisplayFilterAttributeInfo'
+          type: array
+          title: Filter Attributes
+          description: List of filter attributes
+      type: object
+      title: DisplayFilterInfo
+    DisplayItemInfo:
+      properties:
+        items_count:
+          type: integer
+          title: Items Count
+          description: Total number of items
+          default: 0
+      type: object
+      title: DisplayItemInfo
+    DisplayQueryInfo:
+      properties:
+        filter_info:
+          anyOf:
+            - $ref: '#/components/schemas/DisplayFilterInfo'
+            - type: 'null'
+          description: Filter information for the items
+        sort_info:
+          anyOf:
+            - $ref: '#/components/schemas/DisplaySortInfo'
+            - type: 'null'
+          description: Sort information for the items
+      type: object
+      title: DisplayQueryInfo
+    DisplaySortAttributeInfo:
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Name
+          description: Name of the filter attribute
+        parent:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Parent
+          description: Parent filter attribute
+      type: object
+      title: DisplaySortAttributeInfo
+    DisplaySortInfo:
+      properties:
+        sort_attributes:
+          items:
+            $ref: '#/components/schemas/DisplaySortAttributeInfo'
+          type: array
+          title: Sort Attributes
+          description: List of sort attributes
+      type: object
+      title: DisplaySortInfo
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
