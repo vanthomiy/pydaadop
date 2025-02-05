@@ -90,8 +90,13 @@ nav:
   - Installation: install.md
   - Contributing: contributing.md
   - Changelog: changelog.md
-- Concepts:
-  - Models: concepts/models.md
+- Examples:
+  - Quick Setup:
+    - Auto Setup: examples/quick_auto.md
+    - Manual Setup: examples/quick_manual.md
+    - Run: examples/quick_run.md
+  - Extended Usage: examples/extended.md
+  - Full Usage: examples/full.md
 - API Documentation:
   - Clients:  
     - Client Factory: api/clients/client_api_factory.md
@@ -113,16 +118,6 @@ nav:
   - Routes: api/routes.md
   - Services: api/services.md
   - Utils: api/utils.md
-
-- Examples:
-  - Quick Setup:
-    - Auto Setup: examples/quick_auto.md
-    - Manual Setup: examples/quick_manual.md
-    - Run: examples/quick_run.md
-  - Extended Usage: examples/extended.md
-  - Full Usage: examples/full.md
-- Error Messages:
-  - Error Handling: errors/errors.md
 
 markdown_extensions:
 - tables
