@@ -28,14 +28,7 @@ jobs:
       - name: Determine Next Release Tag
         id: tag
         run: |
-          LATEST_TAG=$(git tag -l "quick-setup-v*" | sort -V | tail -n 1)
-          if [[ -z "$LATEST_TAG" ]]; then
-            NEXT_TAG="quick-setup-v1"
-          else
-            TAG_NUMBER=$(echo "$LATEST_TAG" | grep -o '[0-9]*$')
-            NEXT_NUMBER=$((TAG_NUMBER + 1))
-            NEXT_TAG="quick-setup-v$NEXT_NUMBER"
-          fi
+          NEXT_TAG="quick-setup-release"
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
           echo "Next release tag: $NEXT_TAG"
 
