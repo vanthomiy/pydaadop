@@ -36,18 +36,14 @@ jobs:
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
           echo "Next release tag: $NEXT_TAG"
 
-      - name: Prepare files before switching branch
+      - name: Store files in workspace (before switching branch)
         run: |
-          cp examples/example.env example.env
-          cp examples/setups/quick/api.py api.py
-          cp examples/setups/quick/client.py client.py
-          cp examples/requirements.txt requirements.txt
-          cp examples/docker-compose.yml docker-compose.yml
-
-      - name: Stash prepared files
-        run: |
-          git add example.env api.py client.py requirements.txt docker-compose.yml
-          git stash push -m "Stashing quick-setup files"
+          # Copy the files you want to include in the release to the workspace
+          cp examples/example.env $GITHUB_WORKSPACE/example.env
+          cp examples/setups/quick/api.py $GITHUB_WORKSPACE/api.py
+          cp examples/setups/quick/client.py $GITHUB_WORKSPACE/client.py
+          cp examples/requirements.txt $GITHUB_WORKSPACE/requirements.txt
+          cp examples/docker-compose.yml $GITHUB_WORKSPACE/docker-compose.yml
 
       - name: Check if branch exists and create if necessary
         run: |
@@ -64,14 +60,19 @@ jobs:
           git rm -rf . || true  # Remove all files (ignore errors)
           git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
-      - name: Apply stashed files to root
+      - name: Copy files to the root of the branch
         run: |
-          git stash pop || echo "No stash found, skipping"
+          # Copy the files back into the branch's root directory
+          cp $GITHUB_WORKSPACE/example.env .
+          cp $GITHUB_WORKSPACE/api.py .
+          cp $GITHUB_WORKSPACE/client.py .
+          cp $GITHUB_WORKSPACE/requirements.txt .
+          cp $GITHUB_WORKSPACE/docker-compose.yml .
 
-      - name: Commit new files in root
+      - name: Commit and push new files in root
         run: |
           git add example.env api.py client.py requirements.txt docker-compose.yml
-          git commit --allow-empty -m "Force commit new files for Quick Setup release"
+          git commit -m "Prepare Quick Setup release"
           git push origin quick-setup --force
 
       - name: Create and Push New Tag
