@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-
+    paths:
+      - 'examples/**'
 jobs:
   release:
     name: Create Quick Setup Release
@@ -76,11 +77,15 @@ jobs:
           git commit --allow-empty -m "Prepare Quick Setup release"
           git push origin quick-setup --force
 
-      # 9. Create and push the new tag (quick-setup-vX)
+      # 9. Create and push the new tag (quick-setup-vX) if it does not already exist
       - name: Create and Push New Tag
         run: |
-          git tag $NEXT_TAG
-          git push origin $NEXT_TAG
+          if git rev-parse "$NEXT_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEXT_TAG already exists"
+          else
+            git tag $NEXT_TAG
+            git push origin $NEXT_TAG
+          fi
 
       # 10. Create a GitHub Release using the new tag
       - name: Create GitHub Release
