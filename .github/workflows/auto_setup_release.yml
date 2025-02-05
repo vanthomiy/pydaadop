@@ -36,6 +36,19 @@ jobs:
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
           echo "Next release tag: $NEXT_TAG"
 
+      - name: Prepare files before switching branch
+        run: |
+          cp examples/example.env example.env
+          cp examples/setups/quick/api.py api.py
+          cp examples/setups/quick/client.py client.py
+          cp examples/requirements.txt requirements.txt
+          cp examples/docker-compose.yml docker-compose.yml
+
+      - name: Stash prepared files
+        run: |
+          git add example.env api.py client.py requirements.txt docker-compose.yml
+          git stash push -m "Stashing quick-setup files"
+
       - name: Check if branch exists and create if necessary
         run: |
           if git show-ref --verify --quiet refs/heads/quick-setup; then
@@ -51,13 +64,9 @@ jobs:
           git rm -rf . || true  # Remove all files (ignore errors)
           git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
-      - name: Copy files directly to root
+      - name: Apply stashed files to root
         run: |
-          cp examples/example.env .
-          cp examples/setups/quick/api.py .
-          cp examples/setups/quick/client.py .
-          cp examples/requirements.txt .
-          cp examples/docker-compose.yml .
+          git stash pop || echo "No stash found, skipping"
 
       - name: Commit new files in root
         run: |
