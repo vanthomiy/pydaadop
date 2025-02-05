@@ -14,25 +14,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all branches
+          fetch-depth: 0  # Fetch all branches and tags
 
       - name: Configure Git
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-      - name: Prepare quick-setup folder (before switching branch)
+      - name: Determine Next Release Tag
+        id: tag
         run: |
-          mkdir -p quick-setup
-          cp examples/example.env quick-setup/example.env
-          cp examples/setups/quick/api.py quick-setup/api.py
-          cp examples/setups/quick/client.py quick-setup/client.py
-          cp examples/requirements.txt quick-setup/requirements.txt
-          cp examples/docker-compose.yml quick-setup/docker-compose.yml
+          # Get the latest quick-setup-* tag, extract the number, and increment it
+          LATEST_TAG=$(git tag -l "quick-setup-*" | sort -V | tail -n 1)
+          if [[ -z "$LATEST_TAG" ]]; then
+            NEXT_TAG="quick-setup-1"
+          else
+            TAG_NUMBER=$(echo "$LATEST_TAG" | grep -o '[0-9]*$')
+            NEXT_NUMBER=$((TAG_NUMBER + 1))
+            NEXT_TAG="quick-setup-$NEXT_NUMBER"
+          fi
+          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
+          echo "Next release tag: $NEXT_TAG"
+
+      - name: Prepare files before switching branch
+        run: |
+          mkdir -p temp-files
+          cp examples/example.env temp-files/example.env
+          cp examples/setups/quick/api.py temp-files/api.py
+          cp examples/setups/quick/client.py temp-files/client.py
+          cp examples/requirements.txt temp-files/requirements.txt
+          cp examples/docker-compose.yml temp-files/docker-compose.yml
 
       - name: Stash prepared files
         run: |
-          git add quick-setup/*
+          git add temp-files/*
           git stash push -m "Stashing quick-setup files"
 
       - name: Check if branch exists and create if necessary
@@ -50,23 +65,30 @@ jobs:
           git rm -rf . || true  # Remove all files (ignore errors)
           git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
-      - name: Apply stashed files
+      - name: Apply stashed files to root
         run: |
           git stash pop || echo "No stash found, skipping"
+          mv temp-files/* .
+          rm -rf temp-files
 
-      - name: Commit new files
+      - name: Commit new files in root
         run: |
-          git add quick-setup/*
+          git add example.env api.py client.py requirements.txt docker-compose.yml
           git commit -m "Prepare Quick Setup release"
           git push origin quick-setup --force
+
+      - name: Create and Push New Tag
+        run: |
+          git tag $NEXT_TAG
+          git push origin $NEXT_TAG
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: quick-setup
-          name: Quick Setup Release ${{ github.sha }}
+          tag_name: ${{ env.NEXT_TAG }}
+          name: Quick Setup Release ${{ env.NEXT_TAG }}
           body: "Automated release for Quick Setup."
-          files: quick-setup/*
+          files: example.env, api.py, client.py, requirements.txt, docker-compose.yml
           target_commitish: quick-setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
