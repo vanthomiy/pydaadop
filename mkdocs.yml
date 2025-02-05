@@ -1,7 +1,7 @@
 site_name: Pydaadop
 site_description: Data validation using Python type hints
 strict: true
-site_url: https://docs.pydaadop.dev/
+site_url: https://vanthomiy.github.io/pydaadop/
 
 theme:
   name: 'material'
@@ -118,7 +118,7 @@ nav:
   - Quick Setup:
     - Auto Setup: examples/quick_auto.md
     - Manual Setup: examples/quick_manual.md
-    - Result: examples/quick_results.md
+    - Run: examples/quick_run.md
   - Extended Usage: examples/extended.md
   - Full Usage: examples/full.md
 - Error Messages:

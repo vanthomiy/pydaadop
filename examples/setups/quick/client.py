@@ -1,9 +1,13 @@
 from examples.models.generic_model import GenericModel
 from pydaadop.api_clients.client_api_factory import ClientFactory
+import os
 
 def example_usage():
     # Step 1: Initialize Client
-    base_url = "http://localhost:8000"
+    host = os.getenv("FAST_API_BASE_URL", "127.0.0.1")
+    port = int(os.getenv("FAST_API_PORT", 8000))
+    base_url = f"{host}:{port}"
+    
     client = ClientFactory(base_url).get_read_client(GenericModel)
     
     # get display info

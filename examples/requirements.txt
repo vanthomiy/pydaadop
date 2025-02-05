@@ -1,1 +1,1 @@
-pydaadop
+git+https://github.com/vanthomiy/pydaadop@main
