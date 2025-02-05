@@ -5,6 +5,7 @@ on:
     branches:
       - main
 
+
 jobs:
   release:
     name: Create Quick Setup Release
@@ -23,7 +24,7 @@ jobs:
 
       - name: Prepare files (before switching branch)
         run: |
-          cp examples/example.env example.env
+          cp examples/example.env .env
           cp examples/setups/quick/api.py api.py
           cp examples/setups/quick/client.py client.py
           cp examples/requirements.txt requirements.txt
@@ -31,7 +32,7 @@ jobs:
 
       - name: Stash prepared files
         run: |
-          git add example.env api.py client.py requirements.txt docker-compose.yml
+          git add .env api.py client.py requirements.txt docker-compose.yml
           git stash push -m "Stashing quick-setup files"
 
       - name: Check if branch exists and create if necessary
@@ -55,7 +56,7 @@ jobs:
 
       - name: Commit new files
         run: |
-          git add example.env api.py client.py requirements.txt docker-compose.yml
+          git add .env api.py client.py requirements.txt docker-compose.yml
           git commit -m "Prepare Quick Setup release"
           git push origin quick-setup --force
 
