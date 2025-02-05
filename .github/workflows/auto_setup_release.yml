@@ -71,7 +71,7 @@ jobs:
       - name: Commit new files in root
         run: |
           git add example.env api.py client.py requirements.txt docker-compose.yml
-          git commit -m "Prepare Quick Setup release"
+          git commit --allow-empty -m "Force commit new files for Quick Setup release"
           git push origin quick-setup --force
 
       - name: Create and Push New Tag
