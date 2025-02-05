@@ -21,6 +21,15 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
+      - name: Prepare quick-setup folder (before switching branch)
+        run: |
+          mkdir -p quick-setup
+          cp examples/example.env quick-setup/example.env
+          cp examples/setups/quick/api.py quick-setup/api.py
+          cp examples/setups/quick/client.py quick-setup/client.py
+          cp examples/requirements.txt quick-setup/requirements.txt
+          cp examples/docker-compose.yml quick-setup/docker-compose.yml
+
       - name: Check if branch exists and create if necessary
         run: |
           if git show-ref --verify --quiet refs/heads/quick-setup; then
@@ -36,14 +45,10 @@ jobs:
           git rm -rf . || true  # Remove all files (ignore errors)
           git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
-      - name: Prepare release folder
+      - name: Restore quick-setup folder
         run: |
           mkdir -p quick-setup
-          cp examples/example.env quick-setup/example.env
-          cp examples/setups/quick/api.py quick-setup/api.py
-          cp examples/setups/quick/client.py quick-setup/client.py
-          cp examples/requirements.txt quick-setup/requirements.txt
-          cp examples/docker-compose.yml quick-setup/docker-compose.yml
+          cp -r ../quick-setup/* quick-setup/
 
       - name: Commit new files
         run: |
