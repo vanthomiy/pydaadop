@@ -24,14 +24,14 @@ jobs:
       - name: Determine Next Release Tag
         id: tag
         run: |
-          # Get the latest quick-setup-* tag, extract the number, and increment it
-          LATEST_TAG=$(git tag -l "quick-setup-*" | sort -V | tail -n 1)
+          # Get the latest quick-setup-v* tag, extract the number, and increment it
+          LATEST_TAG=$(git tag -l "quick-setup-v*" | sort -V | tail -n 1)
           if [[ -z "$LATEST_TAG" ]]; then
-            NEXT_TAG="quick-setup-1"
+            NEXT_TAG="quick-setup-v1"
           else
             TAG_NUMBER=$(echo "$LATEST_TAG" | grep -o '[0-9]*$')
             NEXT_NUMBER=$((TAG_NUMBER + 1))
-            NEXT_TAG="quick-setup-$NEXT_NUMBER"
+            NEXT_TAG="quick-setup-v$NEXT_NUMBER"
           fi
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
           echo "Next release tag: $NEXT_TAG"
@@ -65,10 +65,15 @@ jobs:
           git rm -rf . || true  # Remove all files (ignore errors)
           git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
+
       - name: Apply stashed files to root
         run: |
           git stash pop || echo "No stash found, skipping"
           mv temp-files/* .
+          
+      - name: Force remove temp-files
+        run: |
+          chmod -R +w temp-files || true
           rm -rf temp-files
 
       - name: Commit new files in root
