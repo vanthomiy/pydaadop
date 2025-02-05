@@ -13,22 +13,51 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all branches
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Check if branch exists and create if necessary
+        run: |
+          if git show-ref --verify --quiet refs/heads/quick-setup; then
+            echo "Branch exists, switching..."
+            git checkout quick-setup
+          else
+            echo "Branch does not exist, creating..."
+            git checkout -b quick-setup
+          fi
+
+      - name: Delete all files in branch
+        run: |
+          git rm -rf . || true  # Remove all files (ignore errors)
+          git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
       - name: Prepare release folder
         run: |
-          mkdir quick-setup
+          mkdir -p quick-setup
           cp examples/example.env quick-setup/example.env
           cp examples/setups/quick/api.py quick-setup/api.py
           cp examples/setups/quick/client.py quick-setup/client.py
           cp examples/requirements.txt quick-setup/requirements.txt
           cp examples/docker-compose.yml quick-setup/docker-compose.yml
 
+      - name: Commit new files
+        run: |
+          git add quick-setup/*
+          git commit -m "Prepare Quick Setup release"
+          git push origin quick-setup --force
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: quick-setup
-          name: Quick Setup Release ${{ github.ref_name }}
+          name: Quick Setup Release ${{ github.sha }}
           body: "Automated release for Quick Setup."
           files: quick-setup/*
+          target_commitish: quick-setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
