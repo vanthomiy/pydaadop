@@ -11,20 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      # 1. Checkout the repository from main with full history (to get tags)
+      - name: Checkout repository from main
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all branches and tags
+          ref: main
+          fetch-depth: 0
 
+      # 2. Configure Git user details
       - name: Configure Git
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
+      # 3. Determine the next release tag (format: quick-setup-vX)
       - name: Determine Next Release Tag
         id: tag
         run: |
-          # Get the latest quick-setup-v* tag, extract the number, and increment it
           LATEST_TAG=$(git tag -l "quick-setup-v*" | sort -V | tail -n 1)
           if [[ -z "$LATEST_TAG" ]]; then
             NEXT_TAG="quick-setup-v1"
@@ -36,16 +39,17 @@ jobs:
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
           echo "Next release tag: $NEXT_TAG"
 
-      - name: Store files in workspace (before switching branch)
+      # 4. Copy the desired files from the main branch into the workspace root
+      - name: Copy release files from main branch
         run: |
-          # Copy the files you want to include in the release to the workspace
           cp examples/example.env $GITHUB_WORKSPACE/example.env
           cp examples/setups/quick/api.py $GITHUB_WORKSPACE/api.py
           cp examples/setups/quick/client.py $GITHUB_WORKSPACE/client.py
           cp examples/requirements.txt $GITHUB_WORKSPACE/requirements.txt
           cp examples/docker-compose.yml $GITHUB_WORKSPACE/docker-compose.yml
 
-      - name: Check if branch exists and create if necessary
+      # 5. Switch to (or create) the quick-setup branch
+      - name: Switch to or create quick-setup branch
         run: |
           if git show-ref --verify --quiet refs/heads/quick-setup; then
             echo "Branch exists, switching..."
@@ -55,31 +59,37 @@ jobs:
             git checkout -b quick-setup
           fi
 
-      - name: Delete all files in branch
+      # 6. Empty the quick-setup branch
+      - name: Delete all files in quick-setup branch
         run: |
-          git rm -rf . || true  # Remove all files (ignore errors)
-          git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
+          git rm -rf . || true
+          # Commit cleanup if any file deletion occurred
+          git commit -m "Cleanup quick-setup branch" || echo "No files to remove"
 
-      - name: Copy files to the root of the branch
+      # 7. Copy the files from workspace (which were copied from main) into the branch root
+      - name: Copy files into quick-setup branch root
         run: |
-          # Copy the files back into the branch's root directory
           cp $GITHUB_WORKSPACE/example.env .
           cp $GITHUB_WORKSPACE/api.py .
           cp $GITHUB_WORKSPACE/client.py .
           cp $GITHUB_WORKSPACE/requirements.txt .
           cp $GITHUB_WORKSPACE/docker-compose.yml .
 
-      - name: Commit and push new files in root
+      # 8. Commit and push the new files to quick-setup branch
+      - name: Commit new files in quick-setup branch
         run: |
           git add example.env api.py client.py requirements.txt docker-compose.yml
-          git commit -m "Prepare Quick Setup release"
+          # Use --allow-empty if necessary
+          git commit --allow-empty -m "Prepare Quick Setup release"
           git push origin quick-setup --force
 
+      # 9. Create and push the new tag (quick-setup-vX)
       - name: Create and Push New Tag
         run: |
           git tag $NEXT_TAG
           git push origin $NEXT_TAG
 
+      # 10. Create a GitHub Release using the new tag
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
