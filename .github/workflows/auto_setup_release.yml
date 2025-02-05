@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'examples/**'
 jobs:
   release:
     name: Create Quick Setup Release
