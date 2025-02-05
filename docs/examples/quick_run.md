@@ -7,13 +7,10 @@
     Make sure that you have docker installed in your environment.
     Else follow the instructions on the [Docker website](https://docs.docker.com/get-docker/).
 
-Run the docker-compose file to create docker containers for:
-
-- FastAPI
-- MongoDB
+Run the docker-compose file to create docker containers. With this command the `example.env` file is used to set the environment variables and a build is forced.
 
 ```bash
-docker-compose up --build
+docker-compose --env-file example.env up --build
 ```
 
 ## 1. Swagger UI

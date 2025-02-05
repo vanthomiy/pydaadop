@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydaadop"
-version = "0.0.0.1"
+version = "0.0.0.2"
 description = "Streamline your Python projects with Dockerized APIs, MongoDB, and Pydantic—simplifying setup and scalability."
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
@@ -24,6 +24,7 @@ dependencies = [
     'asposestorage==1.0.2',
     'asposestorage==1.0.2',
     'fastapi==0.115.3',
+    'uvicorn==0.32.0',
     'inflection==0.5.1',
     'pydantic==2.9.2',
     'pymongo==4.9.2',
