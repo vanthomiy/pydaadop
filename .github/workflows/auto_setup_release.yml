@@ -30,6 +30,11 @@ jobs:
           cp examples/requirements.txt quick-setup/requirements.txt
           cp examples/docker-compose.yml quick-setup/docker-compose.yml
 
+      - name: Stash prepared files
+        run: |
+          git add quick-setup/*
+          git stash push -m "Stashing quick-setup files"
+
       - name: Check if branch exists and create if necessary
         run: |
           if git show-ref --verify --quiet refs/heads/quick-setup; then
@@ -45,10 +50,9 @@ jobs:
           git rm -rf . || true  # Remove all files (ignore errors)
           git commit -m "Cleanup quick-setup branch" || echo "No changes to commit"
 
-      - name: Restore quick-setup folder
+      - name: Apply stashed files
         run: |
-          mkdir -p quick-setup
-          cp -r ../quick-setup/* quick-setup/
+          git stash pop || echo "No stash found, skipping"
 
       - name: Commit new files
         run: |
