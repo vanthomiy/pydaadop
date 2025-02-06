@@ -1,59 +1,4 @@
-name: Auto Setup Release
-
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'examples/configuration.yml'
-      - 'examples/**'
-      - '.github/workflows/auto_setup_release.yml'
-
 jobs:
-  # ─── JOB 1: Generate the matrix from configuration ─────────────────────────────
-  generate-matrix:
-    name: Generate Matrix
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install PyYAML
-        run: pip install PyYAML
-
-      - name: Generate matrix from configuration file
-        id: set-matrix
-        run: |
-          python - << 'EOF'
-          import yaml, json, sys
-          try:
-              with open('examples/configuration.yml', 'r') as f:
-                  # The configuration file is expected to be a YAML list
-                  configs = yaml.safe_load(f)
-          except Exception as e:
-              sys.exit(f"Failed to load configuration: {e}")
-
-          matrix = {"include": []}
-          for conf in configs:
-              # Each block must have SETUP_NAME and FILE_MAPPINGS keys.
-              setup_name = conf.get("SETUP_NAME")
-              file_mappings = conf.get("FILE_MAPPINGS")
-              if not setup_name or not file_mappings:
-                  sys.exit("Each configuration block must include SETUP_NAME and FILE_MAPPINGS")
-              matrix["include"].append({
-                  "setup_name": setup_name,
-                  "file_mappings": file_mappings
-              })
-          print("::set-output name=matrix::" + json.dumps(matrix))
-          EOF
-  # ─── JOB 2: Process each setup from the matrix ─────────────────────────────
   release:
     name: Create Release per Setup
     needs: generate-matrix
@@ -116,7 +61,7 @@ jobs:
             git checkout -b ${SETUP_BRANCH}
           fi
 
-      # ─── Delete all existing files in the branch ─────────────
+      # ─── Clean branch files ─────────────
       - name: Clean branch files
         run: |
           git rm -rf . || true
@@ -131,6 +76,12 @@ jobs:
             cp "/tmp/release-files/$dest" "./$dest"
           done
           rm -rf /tmp/release-files
+
+      # ─── Configure Git before committing ─────────────
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
 
       # ─── Commit and push the new files ─────────────
       - name: Commit and push files to branch
