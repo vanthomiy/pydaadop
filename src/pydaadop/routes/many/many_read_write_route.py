@@ -1,11 +1,10 @@
 from typing import Type, TypeVar, List
 from fastapi import HTTPException, Depends
-from pymongo.results import InsertManyResult, BulkWriteResult
 
 from ...models.base import BaseMongoModel
 from ...queries.base.base_query import BaseQuery
-from ...services.bulk.bulk_read_write_service import BulkReadWriteService
-from ...services.interface.bulk_read_write_service_interface import BulkReadWriteServiceInterface
+from ...services.many.many_read_write_service import ManyReadWriteService
+from ...services.interface.many_read_write_service_interface import ManyReadWriteServiceInterface
 from pydantic import BaseModel
 from typing_extensions import override
 
@@ -13,10 +12,10 @@ from ..base.base_read_write_route import BaseReadWriteRouter
 
 T = TypeVar("T", bound=BaseMongoModel)  # Generic type for the model class
 
-class BulkReadWriteRouter(BaseReadWriteRouter[T]):
-    def __init__(self, model: Type[T], service: BulkReadWriteServiceInterface = None):
-        self.name = "bulk"
-        self.service = service if service else BulkReadWriteService(model)
+class ManyReadWriteRouter(BaseReadWriteRouter[T]):
+    def __init__(self, model: Type[T], service: ManyReadWriteServiceInterface = None):
+        self.name = "many"
+        self.service = service if service else ManyReadWriteService(model)
         super().__init__(model, self.service)
 
     @override

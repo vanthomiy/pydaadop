@@ -5,16 +5,16 @@ from pymongo.results import InsertManyResult, BulkWriteResult, DeleteResult
 from typing_extensions import override
 
 from ..base.base_read_write_service import BaseReadWriteService
-from ..interface.bulk_read_write_service_interface import BulkReadWriteServiceInterface
+from ..interface.many_read_write_service_interface import ManyReadWriteServiceInterface
 from ...models.base import BaseMongoModel
-from ...repositories.bulk.bulk_read_write_repository import BulkReadWriteRepository
+from ...repositories.many.many_read_write_repository import ManyReadWriteRepository
 
 S = TypeVar('S', bound=BaseMongoModel)
-R = TypeVar('R', bound=BulkReadWriteRepository[BaseMongoModel])
+R = TypeVar('R', bound=ManyReadWriteRepository[BaseMongoModel])
 
-class BulkReadWriteService(BulkReadWriteServiceInterface[S], BaseReadWriteService[S], ABC):
+class ManyReadWriteService(ManyReadWriteServiceInterface[S], BaseReadWriteService[S], ABC):
     def __init__(self, model: Type[S], repository: R = None):
-        self.repository = repository if repository else BulkReadWriteRepository(model)
+        self.repository = repository if repository else ManyReadWriteRepository(model)
         super().__init__(model, self.repository)
 
     @override

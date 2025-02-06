@@ -12,7 +12,7 @@ from ...repositories.base.base_repository import BaseRepository
 S = TypeVar('S', bound=BaseMongoModel)
 
 @abstractmethod
-class BulkReadWriteServiceInterface(ReadWriteServiceInterface[S]):
+class ManyReadWriteServiceInterface(ReadWriteServiceInterface[S]):
 
     @abstractmethod
     async def create_many(self, item: [S]) -> InsertManyResult:

@@ -93,8 +93,8 @@ nav:
   - Changelog: changelog.md
 - Examples:
   - Quick Setup:
-    - Auto Setup: examples/quick_auto.md
-    - Manual Setup: examples/quick_manual.md
+    - Overview: examples/quick_overview.md
+    - Setup: examples/quick_setup.md
     - Run: examples/quick_run.md
   - Extended Usage: examples/extended.md
   - Full Usage: examples/full.md
@@ -127,7 +127,6 @@ markdown_extensions:
     title: Page contents
 - admonition
 - pymdownx.details
-- pymdownx.superfences
 - pymdownx.highlight:
     pygments_lang_class: true
     anchor_linenums: true
@@ -147,7 +146,11 @@ markdown_extensions:
 - md_in_html  # Enables Jinja inside Markdown
 - pymdownx.snippets:
     check_paths: true
-- pymdownx.superfences
+- pymdownx.superfences:
+    custom_fences:
+      - name: mermaid
+        class: mermaid
+
 watch:
 - src/pydaadop
 

@@ -10,7 +10,7 @@ from ...models.base import BaseMongoModel
 T = TypeVar("T", bound=BaseMongoModel)
 
 
-class BulkReadWriteRepository(BaseReadWriteRepository[T]):
+class ManyReadWriteRepository(BaseReadWriteRepository[T]):
     def __init__(self, model: Type[T], collection: AsyncIOMotorCollection = None):
         super().__init__(model, collection)
 
