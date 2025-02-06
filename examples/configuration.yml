@@ -2,17 +2,19 @@
   FILE_MAPPINGS: |
     example.env:examples/quick/example.env
     api.py:examples/setups/quick/api.py
-    init.py:examples/setups/quick/init.py
     docker-compose.yml:examples/quick/docker-compose.yml
     api.Dockerfile:examples/quick/api.Dockerfile
     requirements.txt:examples/requirements.txt
 
 - SETUP_NAME: extended-setup
   FILE_MAPPINGS: |
-    example.env:examples/example.env
-    api.py:examples/setups/quick/api.py
-    init.py:examples/setups/quick/init.py
+    example.env:examples/extended/example.env
+    api.py:examples/setups/extended/api.py
+    init.py:examples/setups/extended/init.py
+    docker-compose.yml:examples/extended/docker-compose.yml
+    api.Dockerfile:examples/extended/api.Dockerfile
+    init.Dockerfile:examples/extended/init.Dockerfile
     requirements.txt:examples/requirements.txt
-    docker-compose.yml:examples/docker-compose.yml
-    api.Dockerfile:examples/api.Dockerfile
-    init.Dockerfile:examples/init.Dockerfile
+    custom_model.py:examples/models/custom_model.py
+    generic_model.py:examples/models/generic_model.py
+    my_definition.py:examples/models/my_definition.py

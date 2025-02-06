@@ -1,5 +1,5 @@
 services:
-  api:
+  extended-setup-api:
     build:
       context: .
       dockerfile: api.Dockerfile
@@ -11,7 +11,7 @@ services:
     networks:
       - pydaadop-quick-example-network
 
-  mongo:
+  quick-setup-mongo:
     image: mongo:latest
     command: mongod --port ${MONGO_PORT}
     restart: always

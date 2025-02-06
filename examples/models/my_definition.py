@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Definition(str, Enum):
+class MyDefinition(str, Enum):
     A='allow'
     B='below'
     C='celow'

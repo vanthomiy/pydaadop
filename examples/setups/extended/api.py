@@ -1,43 +1,22 @@
-# create base fast api app
 from fastapi import FastAPI
-
-from fastapi.concurrency import asynccontextmanager
 import uvicorn
-from pydaadop.routes.base.base_read_route import BaseReadRouter
-from examples.models.generic_model import GenericModel
-from examples.models.custom_model import CustomModel
+from pydaadop.routes.base.base_read_write_route import BaseReadWriteRouter
+from pydaadop.routes.many.many_read_write_route import ManyReadWriteRouter
 
-# add the needed base models
-endpoint_models = [GenericModel, CustomModel]
+from generic_model import GenericModel
+from custom_model import CustomModel
+import os
 
-routers = []
+# Create FastAPI app
+app = FastAPI()
+# Include a base read write router of type GenericModel
+app.include_router(BaseReadWriteRouter(GenericModel).router)
+# Include a many read write router of type CustomModel
+app.include_router(ManyReadWriteRouter(CustomModel).router)
 
-# create read routers for each model
-for endpoint_model in endpoint_models:
-    router = BaseReadRouter(endpoint_model)
-    routers.append(router)
-
-# Use lifespan to handle startup and shutdown events
-@asynccontextmanager
-async def lifespan(_app: FastAPI):
-    # Ensure the OpenAPI schema is generated before modifying it
-    schema = _app.openapi()
-
-    # Dynamically create the model
-    for _router in routers:
-        schema = _router.create_openapi_schema(schema)
-
-    # Set the modified schema back to app's OpenAPI schema
-    _app.openapi_schema = schema
-
-    yield  # Continue the lifespan
-
-# Create FastAPI app and include the created routers
-app = FastAPI(lifespan=lifespan)
-[app.include_router(router.router) for router in routers]
-
-
+# Run the app
 if __name__ == "__main__":
-    uvicorn.run(app)
+    host = os.getenv("FAST_API_BASE_URL", "127.0.0.1")
+    port = int(os.getenv("FAST_API_PORT", 8000))
 
-
+    uvicorn.run(app, host=host, port=port)

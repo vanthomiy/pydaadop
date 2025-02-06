@@ -20,8 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the example.env file into the container
 COPY example.env .env
 
-# Copy the api.py file into the container
-COPY api.py .
+# Copy the .py files into the container
+COPY . .
 
 # Expose the port the FastAPI app will run on
 EXPOSE ${FAST_API_PORT}

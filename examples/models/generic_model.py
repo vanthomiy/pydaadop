@@ -1,13 +1,12 @@
 from datetime import datetime
 
 from pydaadop.models.base import BaseMongoModel
-from examples.models.definitions import Definition1
-
+from my_definition import MyDefinition
 
 class GenericModel(BaseMongoModel):
-    str_value: float = 0
+    str_value: str = ""
     int_value: int = 0
     float_value: float = 0
     date_value: datetime = datetime.now()
-    test_enum: Definition1 = Definition1.A
+    test_enum: MyDefinition = MyDefinition.A
 
