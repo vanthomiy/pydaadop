@@ -21,15 +21,13 @@ classifiers = [
 requires-python = ">=3.8"
 
 dependencies = [
-    'asposestorage==1.0.2',
-    'asposestorage==1.0.2',
     'fastapi==0.115.3',
     'uvicorn==0.32.0',
-    'inflection==0.5.1',
+    'motor~=3.6.1',
     'pydantic==2.9.2',
     'pymongo==4.9.2',
     'setuptools==75.2.0',
-    'requests==2.32.0',
+    'requests==2.32.0'
 ]
 
 [tool.setuptools.packages.find]
