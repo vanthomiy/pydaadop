@@ -79,6 +79,7 @@ validation:
 extra_css:
   - 'extra/terminal.css'
   - 'extra/tweaks.css'
+  - 'extra/code.css'
 extra_javascript:
   - 'extra/feedback.js'
   - 'extra/fluff.js'
@@ -129,7 +130,13 @@ markdown_extensions:
 - pymdownx.superfences
 - pymdownx.highlight:
     pygments_lang_class: true
+    anchor_linenums: true
+    use_pygments: true
+    pygments_style: default
+    linenums: false
 - pymdownx.extra
+- pymdownx.inlinehilite
+- pymdownx.details
 - pymdownx.emoji:
     emoji_index: !!python/name:material.extensions.emoji.twemoji
     emoji_generator: !!python/name:material.extensions.emoji.to_svg

@@ -1,0 +1,4 @@
+.md-typeset pre {
+    max-height: 300px;  /* Adjust the height */
+    overflow-y: auto;
+}

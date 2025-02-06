@@ -16,6 +16,10 @@ Create a new project in your favorite IDE like [VS Code](https://code.visualstud
 
 ### 2.1 Environment Variables
 
+!!! Warning
+    Naming the file `.env` is a common practice and it's not recommended to change it and even worse to commit it to the repository.
+    We use hte `example.env` file to be able to commit it to the repository using no actual sensitive data.
+
 Create a `example.env` file in the root of your project and add the following environment variables.
 Feel free to adjust the actual values to your needs.
 
@@ -27,14 +31,14 @@ Feel free to adjust the actual values to your needs.
 
 Create a `requirements.txt` file in the root of your project and add `pydaadop`.
 
-```env  title=".env" linenums="1"
+```env  title="requirements.txt" linenums="1"
 --8<-- "examples/requirements.txt"
 ```
 
 ###  2.3 API
 Add a new file `api.py` and define the `Fast API` using the [`BaseReadRouter`](../install.md) class.
 
-```python title="api.py" linenums="1"
+```python title="api.py"
 --8<-- "examples/setups/quick/api.py"
 ```
 
