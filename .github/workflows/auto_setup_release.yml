@@ -77,7 +77,7 @@ jobs:
       # 8. Commit and push the new files to quick-setup branch
       - name: Commit new files in quick-setup branch
         run: |
-          git add example.env api.py init.py requirements.txt docker-compose.yml api.Dockerfile init.DOckerfile
+          git add example.env api.py init.py requirements.txt docker-compose.yml api.Dockerfile init.Dockerfile
           git commit --allow-empty -m "Prepare Quick Setup release"
           git push origin quick-setup --force
 
