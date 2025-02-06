@@ -1,0 +1,133 @@
+name: Auto Setup Release
+
+on:
+  push:
+    branches:
+      - main
+
+# Define the file mapping once.
+# Format: destination:source
+env:
+  FILE_MAPPINGS: |
+    example.env:examples/example.env
+    api.py:examples/setups/quick/api.py
+    init.py:examples/setups/quick/init.py
+    requirements.txt:examples/requirements.txt
+    docker-compose.yml:examples/docker-compose.yml
+    api.Dockerfile:examples/api.Dockerfile
+    init.Dockerfile:examples/init.Dockerfile
+
+jobs:
+  release:
+    name: Create Quick Setup Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository
+      - name: Checkout repository from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # 2. Configure Git
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+      # 3. Determine the next release tag
+      - name: Determine Next Release Tag
+        id: tag
+        run: |
+          NEXT_TAG="quick-setup-release"
+          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
+          echo "Next release tag: $NEXT_TAG"
+
+      # 4. Copy release files to a temporary folder using the FILE_MAPPINGS list
+      - name: Copy release files to temporary folder
+        run: |
+          mkdir -p /tmp/release-files
+          while IFS=: read -r dest src; do
+            [ -z "$dest" ] && continue
+            echo "Copying $src to /tmp/release-files/$dest"
+            cp "$src" "/tmp/release-files/$dest"
+          done <<< "$FILE_MAPPINGS"
+        env:
+          FILE_MAPPINGS: ${{ env.FILE_MAPPINGS }}
+
+      # 5. Switch to (or create) the quick-setup branch
+      - name: Switch to or create quick-setup branch
+        run: |
+          if git show-ref --verify --quiet refs/heads/quick-setup; then
+            echo "Branch exists, switching..."
+            git checkout quick-setup
+          else
+            echo "Branch does not exist, creating..."
+            git checkout -b quick-setup
+          fi
+
+      # 6. Remove all existing files in the branch
+      - name: Delete all files in quick-setup branch
+        run: |
+          git rm -rf . || true
+          git commit -m "Cleanup quick-setup branch" || echo "No files to remove"
+
+      # 7. Copy files from the temporary folder into the branch root using the FILE_MAPPINGS list
+      - name: Copy files from temporary folder into branch root
+        run: |
+          while IFS=: read -r dest _; do
+            [ -z "$dest" ] && continue
+            echo "Copying /tmp/release-files/$dest to ./$dest"
+            cp "/tmp/release-files/$dest" "./$dest"
+          done <<< "$FILE_MAPPINGS"
+          rm -rf /tmp/release-files  # Clean up
+        env:
+          FILE_MAPPINGS: ${{ env.FILE_MAPPINGS }}
+
+      # 8. Commit and push the new files
+      - name: Commit new files in quick-setup branch
+        run: |
+          # Extract destination filenames from FILE_MAPPINGS and add them
+          files=$(echo "$FILE_MAPPINGS" | awk -F: '{print $1}' | paste -sd " " -)
+          echo "Files to add: $files"
+          for file in $files; do
+            git add "$file"
+          done
+          git commit --allow-empty -m "Prepare Quick Setup release"
+          git push origin quick-setup --force
+        env:
+          FILE_MAPPINGS: ${{ env.FILE_MAPPINGS }}
+
+      # 9. Create a comma-separated list of destination filenames to use for the release assets
+      - name: Generate release file list
+        id: release_files
+        run: |
+          # Use awk to get the destination file names and then join them with commas.
+          files=$(echo "$FILE_MAPPINGS" | awk -F: '{print $1}' | paste -sd, -)
+          echo "Release files: $files"
+          echo "release_files=$files" >> "$GITHUB_OUTPUT"
+        env:
+          FILE_MAPPINGS: ${{ env.FILE_MAPPINGS }}
+
+      # 10. Create and push the tag if it doesn't already exist
+      - name: Create and Push New Tag
+        run: |
+          if git rev-parse "$NEXT_TAG" >/dev/null 2>&1; then
+            echo "Tag $NEXT_TAG already exists"
+          else
+            git tag $NEXT_TAG
+            git push origin $NEXT_TAG
+          fi
+
+      # 11. Create the GitHub Release using the dynamically generated file list
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.NEXT_TAG }}
+          name: Quick Setup Release ${{ env.NEXT_TAG }}
+          body: "Automated release for Quick Setup."
+          files: ${{ steps.release_files.outputs.release_files }}
+          target_commitish: quick-setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
