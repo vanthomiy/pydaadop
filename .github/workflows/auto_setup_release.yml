@@ -5,100 +5,169 @@ on:
     branches:
       - main
     paths:
+      - 'examples/configuration.yml'
       - 'examples/**'
+      - '.github/workflows/auto_setup_release.yml'
+
 jobs:
-  release:
-    name: Create Quick Setup Release
+  # ─── JOB 1: Generate the matrix from configuration ─────────────────────────────
+  generate-matrix:
+    name: Generate Matrix
     runs-on: ubuntu-latest
-
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      # 1. Checkout repository from main (full history for tags)
-      - name: Checkout repository from main
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          ref: main
-          fetch-depth: 0
+          python-version: '3.x'
 
-      # 2. Configure Git
-      - name: Configure Git
+      - name: Install PyYAML
+        run: pip install PyYAML
+
+      - name: Generate matrix from configuration file
+        id: set-matrix
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          python - << 'EOF'
+          import yaml, json, sys
+          try:
+              with open('examples/configuration.yml', 'r') as f:
+                  # The configuration file is expected to be a YAML list
+                  configs = yaml.safe_load(f)
+          except Exception as e:
+              sys.exit(f"Failed to load configuration: {e}")
 
-      # 3. Determine the next release tag (format: quick-setup-vX)
+          matrix = {"include": []}
+          for conf in configs:
+              # Each block must have SETUP_NAME and FILE_MAPPINGS keys.
+              setup_name = conf.get("SETUP_NAME")
+              file_mappings = conf.get("FILE_MAPPINGS")
+              if not setup_name or not file_mappings:
+                  sys.exit("Each configuration block must include SETUP_NAME and FILE_MAPPINGS")
+              matrix["include"].append({
+                  "setup_name": setup_name,
+                  "file_mappings": file_mappings
+              })
+          print("::set-output name=matrix::" + json.dumps(matrix))
+          EOF
+  # ─── JOB 2: Process each setup from the matrix ─────────────────────────────
+  release:
+    name: Create Release per Setup
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Display setup info
+        run: |
+          echo "Processing setup: ${{ matrix.setup_name }}"
+          echo "File mappings:"
+          echo "${{ matrix.file_mappings }}"
+
+      # ─── Determine next release tag ─────────────────────────────
       - name: Determine Next Release Tag
         id: tag
         run: |
-          NEXT_TAG="quick-setup-release"
+          SETUP_NAME="${{ matrix.setup_name }}"
+          BASE_TAG="${SETUP_NAME}-v"
+          # Find the latest tag that starts with the base tag
+          LATEST=$(git tag --list "${BASE_TAG}*" | sort -V | tail -n1)
+          if [ -z "$LATEST" ]; then
+            NEXT_TAG="${BASE_TAG}1"
+          else
+            NUM=${LATEST##*-v}
+            NEXT_TAG="${BASE_TAG}$((NUM + 1))"
+          fi
+          echo "Next tag: $NEXT_TAG"
           echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
-          echo "Next release tag: $NEXT_TAG"
 
-      # 4. Copy the desired files from the main branch into a temporary folder outside the repo
+      # ─── Copy files to a temporary folder using file mappings ─────────────
       - name: Copy release files to temporary folder
         run: |
           mkdir -p /tmp/release-files
-          cp examples/example.env /tmp/release-files/example.env
-          cp examples/setups/quick/api.py /tmp/release-files/api.py
-          cp examples/setups/quick/init.py /tmp/release-files/init.py
-          cp examples/requirements.txt /tmp/release-files/requirements.txt
-          cp examples/docker-compose.yml /tmp/release-files/docker-compose.yml
-          cp examples/api.Dockerfile /tmp/release-files/api.Dockerfile
-          cp examples/init.Dockerfile /tmp/release-files/init.Dockerfile
+          # Process each line of file mappings (delimiter is a colon)
+          echo "${{ matrix.file_mappings }}" | while IFS=: read -r dest src; do
+            # Skip empty lines
+            [ -z "$dest" ] && continue
+            echo "Copying $src to /tmp/release-files/$dest"
+            cp "$src" "/tmp/release-files/$dest"
+          done
 
-      # 5. Switch to (or create) the quick-setup branch
-      - name: Switch to or create quick-setup branch
+      # ─── Switch to (or create) branch for the setup ─────────────
+      - name: Switch to or create setup branch
         run: |
-          if git show-ref --verify --quiet refs/heads/quick-setup; then
-            echo "Branch exists, switching..."
-            git checkout quick-setup
+          SETUP_BRANCH="${{ matrix.setup_name }}"
+          if git show-ref --verify --quiet refs/heads/${SETUP_BRANCH}; then
+            echo "Branch exists, switching to ${SETUP_BRANCH}..."
+            git checkout ${SETUP_BRANCH}
           else
-            echo "Branch does not exist, creating..."
-            git checkout -b quick-setup
+            echo "Branch does not exist. Creating ${SETUP_BRANCH}..."
+            git checkout -b ${SETUP_BRANCH}
           fi
 
-      # 6. Empty the quick-setup branch
-      - name: Delete all files in quick-setup branch
+      # ─── Delete all existing files in the branch ─────────────
+      - name: Clean branch files
         run: |
           git rm -rf . || true
-          git commit -m "Cleanup quick-setup branch" || echo "No files to remove"
+          git commit -m "Cleanup ${SETUP_BRANCH} branch" || echo "No files to remove"
 
-      # 7. Copy the files from the temporary folder into the root of the branch
+      # ─── Copy files from temporary folder into branch root ─────────────
       - name: Copy files from temporary folder into branch root
         run: |
-          cp /tmp/release-files/example.env .
-          cp /tmp/release-files/api.py .
-          cp /tmp/release-files/init.py .
-          cp /tmp/release-files/requirements.txt .
-          cp /tmp/release-files/docker-compose.yml .
-          cp /tmp/release-files/api.Dockerfile .
-          cp /tmp/release-files/init.Dockerfile .
-          rm -rf /tmp/release-files  # Remove temporary folder after copying
+          echo "${{ matrix.file_mappings }}" | while IFS=: read -r dest _; do
+            [ -z "$dest" ] && continue
+            echo "Copying /tmp/release-files/$dest to ./$dest"
+            cp "/tmp/release-files/$dest" "./$dest"
+          done
+          rm -rf /tmp/release-files
 
-      # 8. Commit and push the new files to quick-setup branch
-      - name: Commit new files in quick-setup branch
+      # ─── Commit and push the new files ─────────────
+      - name: Commit and push files to branch
         run: |
-          git add example.env api.py init.py requirements.txt docker-compose.yml api.Dockerfile init.Dockerfile
-          git commit --allow-empty -m "Prepare Quick Setup release"
-          git push origin quick-setup --force
+          # Extract destination filenames and add them to Git.
+          files=$(echo "${{ matrix.file_mappings }}" | awk -F: '{print $1}' | paste -sd " " -)
+          echo "Files to add: $files"
+          git add $files
+          git commit --allow-empty -m "Prepare ${{ matrix.setup_name }} release"
+          git push origin "${{ matrix.setup_name }}" --force
 
-      # 9. Create and push the new tag (quick-setup-vX) if it does not already exist
+      # ─── Create (or update) the tag for this setup ─────────────
       - name: Create and Push New Tag
         run: |
           if git rev-parse "$NEXT_TAG" >/dev/null 2>&1; then
             echo "Tag $NEXT_TAG already exists"
           else
-            git tag $NEXT_TAG
-            git push origin $NEXT_TAG
+            git tag "$NEXT_TAG"
+            git push origin "$NEXT_TAG"
           fi
 
-      # 10. Create a GitHub Release using the new tag
+      # ─── Generate comma-separated asset list from file mappings ─────────────
+      - name: Generate asset file list
+        id: assets
+        run: |
+          asset_files=$(echo "${{ matrix.file_mappings }}" | awk -F: '{print $1}' | paste -sd, -)
+          echo "Asset files: $asset_files"
+          echo "asset_files=$asset_files" >> "$GITHUB_OUTPUT"
+
+      # ─── Create GitHub Release with assets ─────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.NEXT_TAG }}
-          name: Quick Setup Release ${{ env.NEXT_TAG }}
-          body: "Automated release for Quick Setup."
-          files: example.env, api.py, init.py, requirements.txt, docker-compose.yml api.Dockerfile init.Dockerfile
-          target_commitish: quick-setup
+          name: "${{ env.NEXT_TAG }}"
+          body: "Automated release for ${{ matrix.setup_name }}"
+          files: ${{ steps.assets.outputs.asset_files }}
+          target_commitish: ${{ matrix.setup_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
