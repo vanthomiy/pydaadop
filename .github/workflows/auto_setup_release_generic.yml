@@ -24,6 +24,9 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install PyYAML
+        run: pip install PyYAML
+
       - name: Generate matrix from configuration file
         id: set-matrix
         run: |
