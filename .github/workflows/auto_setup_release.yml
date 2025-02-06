@@ -42,7 +42,8 @@ jobs:
           cp examples/setups/quick/client.py /tmp/release-files/client.py
           cp examples/requirements.txt /tmp/release-files/requirements.txt
           cp examples/docker-compose.yml /tmp/release-files/docker-compose.yml
-          cp examples/Dockerfile /tmp/release-files/Dockerfile
+          cp examples/api.Dockerfile /tmp/release-files/api.Dockerfile
+          cp examples/init.Dockerfile /tmp/release-files/init.Dockerfile
 
       # 5. Switch to (or create) the quick-setup branch
       - name: Switch to or create quick-setup branch
@@ -69,13 +70,14 @@ jobs:
           cp /tmp/release-files/client.py .
           cp /tmp/release-files/requirements.txt .
           cp /tmp/release-files/docker-compose.yml .
-          cp /tmp/release-files/Dockerfile .
+          cp /tmp/release-files/api.Dockerfile .
+          cp /tmp/release-files/init.Dockerfile .
           rm -rf /tmp/release-files  # Remove temporary folder after copying
 
       # 8. Commit and push the new files to quick-setup branch
       - name: Commit new files in quick-setup branch
         run: |
-          git add example.env api.py client.py requirements.txt docker-compose.yml Dockerfile
+          git add example.env api.py client.py requirements.txt docker-compose.yml api.Dockerfile init.DOckerfile
           git commit --allow-empty -m "Prepare Quick Setup release"
           git push origin quick-setup --force
 
@@ -96,7 +98,7 @@ jobs:
           tag_name: ${{ env.NEXT_TAG }}
           name: Quick Setup Release ${{ env.NEXT_TAG }}
           body: "Automated release for Quick Setup."
-          files: example.env, api.py, client.py, requirements.txt, docker-compose.yml Dockerfile
+          files: example.env, api.py, client.py, requirements.txt, docker-compose.yml api.Dockerfile init.Dockerfile
           target_commitish: quick-setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

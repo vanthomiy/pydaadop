@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: api.Dockerfile
       args:
         FAST_API_BASE_URL: ${FAST_API_BASE_URL}
         FAST_API_PORT: ${FAST_API_PORT}
