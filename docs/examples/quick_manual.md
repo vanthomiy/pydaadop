@@ -42,8 +42,8 @@ Add a new file `api.py` and define the `Fast API` using the [`BaseReadRouter`](.
 We need to add a `Dockerfile` and a `docker-compose.yml` file to the root of the project.
 Does will dockerize the FastAPI and MongoDB for easy setup.
 
-```python title="Dockerfile" linenums="1"
---8<-- "examples/Dockerfile"
+```python title="api.Dockerfile" linenums="1"
+--8<-- "examples/api.Dockerfile"
 ```
 
 ```python title="docker-compose.yml" linenums="1"
@@ -57,7 +57,7 @@ Our final project should look like this:
 ```bash
 .
 ├── api.py
-├── Dockerfile
+├── api.Dockerfile
 ├── docker-compose.yml
 ├── example.env
 └── requirements.txt

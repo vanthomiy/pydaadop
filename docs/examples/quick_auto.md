@@ -8,9 +8,10 @@ We are using a pre-defined release which is ready to go.
 
 ### 1. Download
 
-[![GitHub Downloads (all assets, specific tag)](https://img.shields.io/github/downloads/vanthomiy/pydaadop/quick-setup-release/total)](https://github.com/vanthomiy/pydaadop/releases/tag/quick-setup-release)
+[![Branch](https://img.shields.io/badge/Visit-Branch-blue)](https://github.com/vanthomiy/pydaadop/tree/quick-setup)
+[![Direct Download](https://img.shields.io/badge/Download-Branch-green)](https://github.com/vanthomiy/pydaadop/archive/refs/heads/quick-setup.zip)
 
-To get all files either clone the repository or preferably download the [Quick Auto Setup](https://github.com/vanthomiy/pydaadop/releases/tag/quick-setup-release) release.
+To get all files either visit and clone the [Branch](https://github.com/vanthomiy/pydaadop/tree/quick-setup) or just download the [Archive](https://github.com/vanthomiy/pydaadop/archive/refs/heads/quick-setup.zip).
 Extract the files to your desired location.
 
 ### 2. Open
