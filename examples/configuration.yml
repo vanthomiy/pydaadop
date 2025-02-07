@@ -2,8 +2,8 @@
   FILE_MAPPINGS: |
     example.env:examples/setups/quick/example.env
     api.py:examples/setups/quick/api.py
-    docker-compose.yml:examples/quick/docker-compose.yml
-    api.Dockerfile:examples/quick/api.Dockerfile
+    docker-compose.yml:examples/setups/quick/docker-compose.yml
+    api.Dockerfile:examples/setups/quick/api.Dockerfile
     requirements.txt:examples/requirements.txt
 
 - SETUP_NAME: extended-setup
