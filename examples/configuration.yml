@@ -11,9 +11,9 @@
     example.env:examples/setups/extended/example.env
     api.py:examples/setups/extended/api.py
     init.py:examples/setups/extended/init.py
-    docker-compose.yml:examples/extended/docker-compose.yml
-    api.Dockerfile:examples/extended/api.Dockerfile
-    init.Dockerfile:examples/extended/init.Dockerfile
+    docker-compose.yml:examples/setups/extended/docker-compose.yml
+    api.Dockerfile:examples/setups/extended/api.Dockerfile
+    init.Dockerfile:examples/setups/extended/init.Dockerfile
     requirements.txt:examples/requirements.txt
     custom_model.py:examples/models/custom_model.py
     generic_model.py:examples/models/generic_model.py

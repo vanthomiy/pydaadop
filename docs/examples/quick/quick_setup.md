@@ -23,7 +23,7 @@ You can either choose the ready-to-go project or setup the project manually to g
         We are setting up all files which are needed for a minimalistic pydaadop project.
 
         ### 1. Install
-        Follow the [installation instructions](../install.md) to install Pydaadop in your environment.
+        Follow the [installation instructions](../../install.md) to install Pydaadop in your environment.
         Make sure that you have docker installed in your environment.
 
         ### 2. Setup
@@ -40,7 +40,7 @@ You can either choose the ready-to-go project or setup the project manually to g
         Feel free to adjust the actual values to your needs.
 
         ```env  title=".env" linenums="1"
-        --8<-- "examples/example.env"
+        --8<-- "examples/setups/quick/example.env"
         ```
 
         #### 2.2 Requirements
@@ -52,7 +52,7 @@ You can either choose the ready-to-go project or setup the project manually to g
         ```
 
         ####  2.3 API
-        Add a new file `api.py` and define the `Fast API` using the [`BaseReadRouter`](../install.md) class.
+        Add a new file `api.py` and define the `Fast API` using the [`BaseReadRouter`]() class.
 
         ```python title="api.py"
         --8<-- "examples/setups/quick/api.py"
@@ -63,11 +63,11 @@ You can either choose the ready-to-go project or setup the project manually to g
         These will dockerize the FastAPI and MongoDB for easy setup.
 
         ```python title="api.Dockerfile" linenums="1"
-        --8<-- "examples/api.Dockerfile"
+        --8<-- "examples/setups/quick/api.Dockerfile"
         ```
 
         ```python title="docker-compose.yml" linenums="1"
-        --8<-- "examples/docker-compose.yml"
+        --8<-- "examples/setups/quick/docker-compose.yml"
         ```
 
         ### 3. Final Project

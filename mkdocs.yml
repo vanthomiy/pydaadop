@@ -93,9 +93,9 @@ nav:
   - Changelog: changelog.md
 - Examples:
   - Quick Setup:
-    - Overview: examples/quick_overview.md
-    - Setup: examples/quick_setup.md
-    - Run: examples/quick_run.md
+    - Overview: examples/quick/quick_overview.md
+    - Setup: examples/quick/quick_setup.md
+    - Run: examples/quick/quick_run.md
   - Extended Usage: examples/extended.md
   - Full Usage: examples/full.md
 - API Documentation:
