@@ -15,12 +15,29 @@ from ...models.display.display_query_info import DisplayFilterInfo, DisplayFilte
 from ...queries.base.base_sort import BaseSort
 
 T = TypeVar("T", bound=BaseModel)
+
 class BaseQuery:
+    """
+    BaseQuery class for creating and managing query models.
+
+    Attributes:
+        supported_types (list): List of supported types for queries.
+        supported_selectable_types (list): List of supported selectable types for queries.
+    """
     supported_types = [str, int, float]
     supported_selectable_types = [bool]
 
     @classmethod
     def _get_type(cls, annotation: Any) -> Tuple[type | None, bool]:
+        """
+        Get the type of the annotation.
+
+        Args:
+            annotation (Any): The annotation to get the type of.
+
+        Returns:
+            Tuple[type | None, bool]: The type and whether it is selectable.
+        """
         if not annotation:
             return None, False
 
@@ -50,6 +67,18 @@ class BaseQuery:
 
     @classmethod
     def _is_supported_type(cls, field_type: type, is_selectable: bool, name: str, only_selectable: True) -> bool:
+        """
+        Check if the field type is supported.
+
+        Args:
+            field_type (type): The field type to check.
+            is_selectable (bool): Whether the field is selectable.
+            name (str): The name of the field.
+            only_selectable (bool): Whether to only check selectable fields.
+
+        Returns:
+            bool: True if the field type is supported, False otherwise.
+        """
         if not only_selectable:
             return True
 
@@ -60,7 +89,15 @@ class BaseQuery:
 
     @classmethod
     def _get_allowed_values(cls, annotation: Any) -> list | None:
-        """Extract allowed values if the annotation is a Literal."""
+        """
+        Extract allowed values if the annotation is a Literal.
+
+        Args:
+            annotation (Any): The annotation to extract allowed values from.
+
+        Returns:
+            list | None: The list of allowed values or None.
+        """
         if get_origin(annotation) == Literal:
             return list(get_args(annotation))
 
@@ -73,6 +110,16 @@ class BaseQuery:
 
     @classmethod
     def get_fields_of_model(cls, model: Type[T], only_selectable=True) -> Dict[str, Any]:
+        """
+        Get the fields of the model.
+
+        Args:
+            model (Type[T]): The model to get the fields of.
+            only_selectable (bool): Whether to only get selectable fields.
+
+        Returns:
+            Dict[str, Any]: The dictionary of fields.
+        """
         all_fields: Dict[str, Any] = {}
         field_overrides = {}
 
@@ -102,6 +149,16 @@ class BaseQuery:
 
     @classmethod
     def create_filter(cls, models: list[Type[T]], only_selectable=True) -> Type[BaseModel]:
+        """
+        Create a filter model for the given models.
+
+        Args:
+            models (list[Type[T]]): The list of models to create the filter for.
+            only_selectable (bool): Whether to only create selectable fields.
+
+        Returns:
+            Type[BaseModel]: The created filter model.
+        """
         field_overrides = {}
         name = ""
         for model in models:
@@ -114,6 +171,15 @@ class BaseQuery:
 
     @classmethod
     def create_key_filter(cls, models: list[Type[T]]) -> Type[BaseModel]:
+        """
+        Create a key filter model for the given models.
+
+        Args:
+            models (list[Type[T]]): The list of models to create the key filter for.
+
+        Returns:
+            Type[BaseModel]: The created key filter model.
+        """
         field_overrides = {}
         name = ""
         for model in models:
@@ -131,6 +197,16 @@ class BaseQuery:
 
     @classmethod
     def split_filter(cls, models: [Type[T]], filter_data: Dict) -> List[Dict]:
+        """
+        Split the filter data into the different models based on the keys which represent the model fields.
+
+        Args:
+            models ([Type[T]]): The list of models to split the filter data for.
+            filter_data (Dict): The filter data to split.
+
+        Returns:
+            List[Dict]: The list of split filter data.
+        """
         # split the filter data into the different models based on the keys which represent the model fields
         split_filter_data = [{} for _ in range(len(models))]
 
@@ -144,6 +220,16 @@ class BaseQuery:
 
     @classmethod
     def split_sort(cls, models: [Type[T]], sort_model: BaseSort) -> List[BaseSort | None]:
+        """
+        Split the sort model into the different models based on the sort_by field.
+
+        Args:
+            models ([Type[T]]): The list of models to split the sort model for.
+            sort_model (BaseSort): The sort model to split.
+
+        Returns:
+            List[BaseSort | None]: The list of split sort models.
+        """
         # check if the sort model has a sort_by field
         if not sort_model.sort_by:
             return [None for _ in range(len(models))]
@@ -159,6 +245,16 @@ class BaseQuery:
 
     @classmethod
     def extract_filter(cls, filter_model: BaseModel, exclude=True) -> dict:
+        """
+        Extract the filter data from the filter model.
+
+        Args:
+            filter_model (BaseModel): The filter model to extract the data from.
+            exclude (bool): Whether to exclude None, unset, and default values.
+
+        Returns:
+            dict: The extracted filter data.
+        """
         filter_data = filter_model.model_dump(exclude_none=exclude, exclude_unset=exclude, exclude_defaults=exclude)
 
         if "id" in filter_data:
@@ -168,6 +264,15 @@ class BaseQuery:
 
     @classmethod
     def extract_range(cls, range_model: BaseRange) -> dict:
+        """
+        Extract the range data from the range model.
+
+        Args:
+            range_model (BaseRange): The range model to extract the data from.
+
+        Returns:
+            dict: The extracted range data.
+        """
         if not range_model.range_by or not (range_model.gte_value or range_model.lte_value):
             return {}
 
@@ -183,6 +288,15 @@ class BaseQuery:
 
     @classmethod
     def create_sort(cls, models: list[Type[T]]) -> Type[BaseSort]:
+        """
+        Create a sort model for the given models.
+
+        Args:
+            models (list[Type[T]]): The list of models to create the sort model for.
+
+        Returns:
+            Type[BaseSort]: The created sort model.
+        """
         model_name = "_".join([model.__name__ for model in models])
         filter_model = cls.create_filter(models, only_selectable=False)
         filterable_fields = cls.extract_filter(filter_model(), exclude=False)
@@ -209,6 +323,15 @@ class BaseQuery:
         )
     @classmethod
     def create_range(cls, models: list[Type[T]]) -> Type[BaseRange]:
+        """
+        Create a range model for the given models.
+
+        Args:
+            models (list[Type[T]]): The list of models to create the range model for.
+
+        Returns:
+            Type[BaseRange]: The created range model.
+        """
         model_name = "_".join([model.__name__ for model in models])
         filter_model = cls.create_filter(models, only_selectable=False)
         filterable_fields = cls.extract_filter(filter_model(), exclude=False)
@@ -238,6 +361,15 @@ class BaseQuery:
 
     @classmethod
     def create_select(cls, models: list[Type[T]]) -> Type[BaseSelect]:
+        """
+        Create a select model for the given models.
+
+        Args:
+            models (list[Type[T]]): The list of models to create the select model for.
+
+        Returns:
+            Type[BaseSelect]: The created select model.
+        """
         model_name = "_".join([model.__name__ for model in models])
         # get all the fields of the models and create a boolean field for each field
         selectable_fields = {}
@@ -268,6 +400,16 @@ class BaseQuery:
 
     @classmethod
     def extract_search(cls, model: Type[T], search_model: BaseSearch) -> Dict:
+        """
+        Extract the search query from the search model.
+
+        Args:
+            model (Type[T]): The model to extract the search query for.
+            search_model (BaseSearch): The search model to extract the query from.
+
+        Returns:
+            Dict: The extracted search query.
+        """
         if not search_model.search:
             return {}
         filter_model = cls.create_filter([model], only_selectable=False)
@@ -285,6 +427,15 @@ class BaseQuery:
 
     @classmethod
     def create_display_filter_info(cls, model: Type[T]) -> DisplayFilterInfo:
+        """
+        Create display filter info for the given model.
+
+        Args:
+            model (Type[T]): The model to create the display filter info for.
+
+        Returns:
+            DisplayFilterInfo: The created display filter info.
+        """
         filter_model = cls.create_filter([model], only_selectable=True)
 
         model_fields = get_type_hints(filter_model)
@@ -311,6 +462,15 @@ class BaseQuery:
 
     @classmethod
     def combine_display_filter_info(cls, info_filters: list[DisplayFilterInfo]) -> DisplayFilterInfo:
+        """
+        Combine multiple display filter info objects into one.
+
+        Args:
+            info_filters (list[DisplayFilterInfo]): The list of display filter info objects to combine.
+
+        Returns:
+            DisplayFilterInfo: The combined display filter info.
+        """
         combined_filter_info = None
 
         for info_filter in info_filters:
@@ -323,6 +483,15 @@ class BaseQuery:
 
     @classmethod
     def combine_display_sort_info(cls, info_sorts: list[DisplaySortInfo]) -> DisplaySortInfo:
+        """
+        Combine multiple display sort info objects into one.
+
+        Args:
+            info_sorts (list[DisplaySortInfo]): The list of display sort info objects to combine.
+
+        Returns:
+            DisplaySortInfo: The combined display sort info.
+        """
         combined_sort_info = None
 
         for info_sort in info_sorts:
@@ -335,6 +504,15 @@ class BaseQuery:
 
     @classmethod
     def combine_display_query_info(cls, info_queries: list[DisplayQueryInfo]) -> DisplayQueryInfo:
+        """
+        Combine multiple display query info objects into one.
+
+        Args:
+            info_queries (list[DisplayQueryInfo]): The list of display query info objects to combine.
+
+        Returns:
+            DisplayQueryInfo: The combined display query info.
+        """
         combined_query_info = DisplayQueryInfo(
             filter_info=cls.combine_display_filter_info([info_query.filter_info for info_query in info_queries]),
             sort_info=cls.combine_display_sort_info([info_query.sort_info for info_query in info_queries])
@@ -343,6 +521,15 @@ class BaseQuery:
 
     @classmethod
     def create_display_sort_info(cls, model: Type[T]) -> DisplaySortInfo:
+        """
+        Create display sort info for the given model.
+
+        Args:
+            model (Type[T]): The model to create the display sort info for.
+
+        Returns:
+            DisplaySortInfo: The created display sort info.
+        """
         filter_model = cls.create_filter([model], only_selectable=False)
         filterable_fields = cls.extract_filter(filter_model(), exclude=False)
         # only take the keys

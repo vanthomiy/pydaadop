@@ -1,3 +1,11 @@
+"""
+This module provides the BaseReadRepository class, which implements the repository
+for reading MongoDB models.
+
+Classes:
+    BaseReadRepository: A repository class for reading MongoDB models.
+"""
+
 from typing import Type, TypeVar, List, Optional, Dict, Any
 
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -10,18 +18,48 @@ from ...queries.base.base_paging import BasePaging
 
 T = TypeVar("T", bound=BaseMongoModel)
 
-
 class BaseReadRepository(BaseRepository[T]):
+    """
+    A repository class for reading MongoDB models.
+
+    Attributes:
+        collection (AsyncIOMotorCollection): The MongoDB collection.
+    """
+
     def __init__(self, model: Type[T], collection: AsyncIOMotorCollection = None):
+        """
+        Initialize the BaseReadRepository.
+
+        Args:
+            model (Type[T]): The MongoDB model type.
+            collection (AsyncIOMotorCollection, optional): The MongoDB collection. Defaults to None.
+        """
         super().__init__(model, collection)
 
     async def exists(self, keys_filter_query: dict) -> bool:
+        """
+        Check if an item exists based on the filter query.
+
+        Args:
+            keys_filter_query (dict): The filter query.
+
+        Returns:
+            bool: True if the item exists, False otherwise.
+        """
         return await self.collection.count_documents(keys_filter_query) > 0
 
     async def get_by_id(self, keys_filter_query: dict) -> Optional[T]:
+        """
+        Get an item based on the filter query.
+
+        Args:
+            keys_filter_query (dict): The filter query.
+
+        Returns:
+            Optional[T]: The retrieved item, or None if not found.
+        """
         data = await self.collection.find_one(keys_filter_query)
         return self.model(**data) if data else None
-
 
     async def list(
             self, paging_query: BasePaging = BasePaging(),
@@ -29,6 +67,18 @@ class BaseReadRepository(BaseRepository[T]):
             sort_query: Optional[BaseSort] = None,
             search_query: Dict = None
     ) -> List[T]:
+        """
+        List items based on various queries.
+
+        Args:
+            paging_query (BasePaging, optional): The paging query. Defaults to BasePaging().
+            filter_query (Dict, optional): The filter query. Defaults to None.
+            sort_query (Optional[BaseSort], optional): The sort query. Defaults to None.
+            search_query (Dict, optional): The search query. Defaults to None.
+
+        Returns:
+            List[T]: The list of items.
+        """
         if filter_query is None:
             filter_query = {}
         filter_query.update(search_query or {})
@@ -49,6 +99,18 @@ class BaseReadRepository(BaseRepository[T]):
             search_query: Dict = None,
             sort_query: Optional[BaseSort] = None,
     ) -> List[Dict]:
+        """
+        List keys of items based on various queries.
+
+        Args:
+            keys (List[str]): The list of keys to retrieve.
+            filter_query (Dict, optional): The filter query. Defaults to None.
+            search_query (Dict, optional): The search query. Defaults to None.
+            sort_query (Optional[BaseSort], optional): The sort query. Defaults to None.
+
+        Returns:
+            List[Dict]: The list of keys.
+        """
         if filter_query is None:
             filter_query = {}
         filter_query.update(search_query or {})
@@ -67,8 +129,17 @@ class BaseReadRepository(BaseRepository[T]):
         # Directly extract the ID from the result
         return result_keys
 
-
     async def info(self, filter_query: Dict = None, search_query: Dict = None) -> DisplayItemInfo:
+        """
+        Get item information based on various queries.
+
+        Args:
+            filter_query (Dict, optional): The filter query. Defaults to None.
+            search_query (Dict, optional): The search query. Defaults to None.
+
+        Returns:
+            DisplayItemInfo: The item information.
+        """
         # get the count of the items
         if filter_query is None:
             filter_query = {}

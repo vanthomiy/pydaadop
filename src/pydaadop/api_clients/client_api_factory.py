@@ -32,6 +32,7 @@ class ClientFactory:
             ReadApiClient[T]: The read client for the specified model.
 
         Example:
+            factory = ClientFactory("http://localhost:8000/")
             read_client = factory.get_read_client(MyModel)
         """
         if model_class not in self.clients:
@@ -49,6 +50,7 @@ class ClientFactory:
             ReadWriteApiClient[T]: The read-write client for the specified model.
 
         Example:
+            factory = ClientFactory("http://localhost:8000/")
             read_write_client = factory.get_read_write_client(MyModel)
         """
         if model_class not in self.clients:
@@ -66,6 +68,7 @@ class ClientFactory:
             ManyReadWriteApiClient[T]: The many read-write client for the specified model.
 
         Example:
+            factory = ClientFactory("http://localhost:8000/")
             many_read_write_client = factory.get_many_read_write_client(MyModel)
         """
         if model_class not in self.clients:

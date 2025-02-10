@@ -1,7 +1,39 @@
-# utils/create_mongo_uri.py
+"""
+This module provides utilities for managing environment variables related to MongoDB connections.
+
+Functions:
+    get_mongo_uri: Constructs a MongoDB URI from environment variables.
+"""
+
 import os
 
 def get_mongo_uri() -> str | None:
+    """
+    Constructs a MongoDB URI from environment variables.
+
+    This function reads the following environment variables:
+    - MONGODB_USER: The MongoDB username.
+    - MONGODB_PASS: The MongoDB password.
+    - MONGO_BASE_URL: The base URL of the MongoDB server.
+    - MONGO_PORT: The port number of the MongoDB server.
+
+    It then constructs and returns a MongoDB URI in the format:
+    `mongodb://<MONGODB_USER>:<MONGODB_PASS>@<MONGO_BASE_URL>:<MONGO_PORT>`
+
+    Raises:
+        ValueError: If any of the required environment variables are missing.
+
+    Returns:
+        str: The constructed MongoDB URI.
+
+    Example:
+        >>> os.environ['MONGODB_USER'] = 'user'
+        >>> os.environ['MONGODB_PASS'] = 'pass'
+        >>> os.environ['MONGO_BASE_URL'] = 'localhost'
+        >>> os.environ['MONGO_PORT'] = '27017'
+        >>> get_mongo_uri()
+        'mongodb://user:pass@localhost:27017'
+    """
     # Create a dictionary for necessary variables and their values
     env_vars = {
         'MONGODB_USER': os.getenv('MONGODB_USER'),

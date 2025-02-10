@@ -22,3 +22,7 @@ architecture-beta
     swagger:T -- B:server
 
 ```
+
+## Endpoints
+
+In this example we will use the provided `BaseMongoModel` to create ReadWrite endpoints for the MongoDB via FastAPI.

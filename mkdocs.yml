@@ -96,7 +96,10 @@ nav:
     - Overview: examples/quick/quick_overview.md
     - Setup: examples/quick/quick_setup.md
     - Run: examples/quick/quick_run.md
-  - Extended Usage: examples/extended.md
+  - Extended Usage:
+    - Overview: examples/extended/extended_overview.md
+    - Setup: examples/extended/extended_setup.md
+    - Run: examples/extended/extended_run.md
   - Full Usage: examples/full.md
 - API Documentation:
   - Clients:  
@@ -167,7 +170,7 @@ plugins:
 - mkdocstrings:
     handlers:
       python:
-        paths: [.]
+        paths: [src]
         options:
           members_order: source
           separate_signature: true
@@ -178,10 +181,12 @@ plugins:
           signature_crossrefs: true
           show_submodules: true
           show_root_full_path: true
-          show_source: false
+          show_source: true
+          line_numbers: true
           show_if_no_docstring: true  # Ensures all classes are included
           docstring_section: classes
           show_root_toc_entry: false  # Hides module filename in sidebar
+          source_linker: "https://github.com/vanthomiy/pydaadop/blob/main/{path}#L{lineno}"
         import:
           - url: https://docs.python.org/3/objects.inv
             domains: [py, std]
