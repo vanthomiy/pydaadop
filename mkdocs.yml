@@ -117,7 +117,7 @@ nav:
     - Display Info:
       - Item: api/models/display/display_item_info.md
       - Query: api/models/display/display_query_info.md
-  - Queries: api/queries.md
+  - Queries: api/queries/base/queries.md
   - Repositories: api/repositories.md
   - Routes: api/routes.md
   - Services: api/services.md

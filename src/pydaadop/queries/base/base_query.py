@@ -14,8 +14,6 @@ from ...models.display.display_query_info import DisplayFilterInfo, DisplayFilte
     DisplaySortAttributeInfo, DisplayQueryInfo
 from ...queries.base.base_sort import BaseSort
 
-T = TypeVar("T", bound=BaseModel)
-
 class BaseQuery:
     """
     BaseQuery class for creating and managing query models.
@@ -109,12 +107,12 @@ class BaseQuery:
         return None
 
     @classmethod
-    def get_fields_of_model(cls, model: Type[T], only_selectable=True) -> Dict[str, Any]:
+    def get_fields_of_model(cls, model: Type[BaseModel], only_selectable=True) -> Dict[str, Any]:
         """
         Get the fields of the model.
 
         Args:
-            model (Type[T]): The model to get the fields of.
+            model (Type[BaseModel]): The model to get the fields of.
             only_selectable (bool): Whether to only get selectable fields.
 
         Returns:
@@ -148,12 +146,12 @@ class BaseQuery:
         return field_overrides
 
     @classmethod
-    def create_filter(cls, models: list[Type[T]], only_selectable=True) -> Type[BaseModel]:
+    def create_filter(cls, models: list[Type[BaseModel]], only_selectable=True) -> Type[BaseModel]:
         """
         Create a filter model for the given models.
 
         Args:
-            models (list[Type[T]]): The list of models to create the filter for.
+            models (list[Type[BaseModel]]): The list of models to create the filter for.
             only_selectable (bool): Whether to only create selectable fields.
 
         Returns:
@@ -170,12 +168,12 @@ class BaseQuery:
         return query_model
 
     @classmethod
-    def create_key_filter(cls, models: list[Type[T]]) -> Type[BaseModel]:
+    def create_key_filter(cls, models: list[Type[BaseModel]]) -> Type[BaseModel]:
         """
         Create a key filter model for the given models.
 
         Args:
-            models (list[Type[T]]): The list of models to create the key filter for.
+            models (list[Type[BaseModel]]): The list of models to create the key filter for.
 
         Returns:
             Type[BaseModel]: The created key filter model.
@@ -196,12 +194,12 @@ class BaseQuery:
         return query_model
 
     @classmethod
-    def split_filter(cls, models: [Type[T]], filter_data: Dict) -> List[Dict]:
+    def split_filter(cls, models: [Type[BaseModel]], filter_data: Dict) -> List[Dict]:
         """
         Split the filter data into the different models based on the keys which represent the model fields.
 
         Args:
-            models ([Type[T]]): The list of models to split the filter data for.
+            models ([Type[BaseModel]]): The list of models to split the filter data for.
             filter_data (Dict): The filter data to split.
 
         Returns:
@@ -219,12 +217,12 @@ class BaseQuery:
         return split_filter_data
 
     @classmethod
-    def split_sort(cls, models: [Type[T]], sort_model: BaseSort) -> List[BaseSort | None]:
+    def split_sort(cls, models: [Type[BaseModel]], sort_model: BaseSort) -> List[BaseSort | None]:
         """
         Split the sort model into the different models based on the sort_by field.
 
         Args:
-            models ([Type[T]]): The list of models to split the sort model for.
+            models ([Type[BaseModel]]): The list of models to split the sort model for.
             sort_model (BaseSort): The sort model to split.
 
         Returns:
@@ -287,12 +285,12 @@ class BaseQuery:
         return range_dict
 
     @classmethod
-    def create_sort(cls, models: list[Type[T]]) -> Type[BaseSort]:
+    def create_sort(cls, models: list[Type[BaseModel]]) -> Type[BaseSort]:
         """
         Create a sort model for the given models.
 
         Args:
-            models (list[Type[T]]): The list of models to create the sort model for.
+            models (list[Type[BaseModel]]): The list of models to create the sort model for.
 
         Returns:
             Type[BaseSort]: The created sort model.
@@ -322,12 +320,12 @@ class BaseQuery:
             __base__=CustomSort  # Inherit from BaseRange
         )
     @classmethod
-    def create_range(cls, models: list[Type[T]]) -> Type[BaseRange]:
+    def create_range(cls, models: list[Type[BaseModel]]) -> Type[BaseRange]:
         """
         Create a range model for the given models.
 
         Args:
-            models (list[Type[T]]): The list of models to create the range model for.
+            models (list[Type[BaseModel]]): The list of models to create the range model for.
 
         Returns:
             Type[BaseRange]: The created range model.
@@ -360,12 +358,12 @@ class BaseQuery:
 
 
     @classmethod
-    def create_select(cls, models: list[Type[T]]) -> Type[BaseSelect]:
+    def create_select(cls, models: list[Type[BaseModel]]) -> Type[BaseSelect]:
         """
         Create a select model for the given models.
 
         Args:
-            models (list[Type[T]]): The list of models to create the select model for.
+            models (list[Type[BaseModel]]): The list of models to create the select model for.
 
         Returns:
             Type[BaseSelect]: The created select model.
@@ -399,12 +397,12 @@ class BaseQuery:
 
 
     @classmethod
-    def extract_search(cls, model: Type[T], search_model: BaseSearch) -> Dict:
+    def extract_search(cls, model: Type[BaseModel], search_model: BaseSearch) -> Dict:
         """
         Extract the search query from the search model.
 
         Args:
-            model (Type[T]): The model to extract the search query for.
+            model (Type[BaseModel]): The model to extract the search query for.
             search_model (BaseSearch): The search model to extract the query from.
 
         Returns:
@@ -426,12 +424,12 @@ class BaseQuery:
         return search_query
 
     @classmethod
-    def create_display_filter_info(cls, model: Type[T]) -> DisplayFilterInfo:
+    def create_display_filter_info(cls, model: Type[BaseModel]) -> DisplayFilterInfo:
         """
         Create display filter info for the given model.
 
         Args:
-            model (Type[T]): The model to create the display filter info for.
+            model (Type[BaseModel]): The model to create the display filter info for.
 
         Returns:
             DisplayFilterInfo: The created display filter info.
@@ -520,12 +518,12 @@ class BaseQuery:
         return combined_query_info
 
     @classmethod
-    def create_display_sort_info(cls, model: Type[T]) -> DisplaySortInfo:
+    def create_display_sort_info(cls, model: Type[BaseModel]) -> DisplaySortInfo:
         """
         Create display sort info for the given model.
 
         Args:
-            model (Type[T]): The model to create the display sort info for.
+            model (Type[BaseModel]): The model to create the display sort info for.
 
         Returns:
             DisplaySortInfo: The created display sort info.
