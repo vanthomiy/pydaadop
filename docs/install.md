@@ -12,7 +12,7 @@ Installation is as simple as:
     uv add pydaadop
     ```
 
-Pydantic has a few dependencies:
+Pydaadop has a few dependencies:
 
 * [`pydantic-core`](https://pypi.org/project/pydantic-core/): Core validation logic for Pydantic written in Rust.
 * [`typing-extensions`](https://pypi.org/project/typing-extensions/): Backport of the standard library [typing][] module.
