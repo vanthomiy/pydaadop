@@ -28,5 +28,5 @@ jobs:
 
     - name: Build and deploy documentation
       run: |
-        mkdocs build
+        mkdocs build -f mkdocs.generated.yml
         mkdocs gh-deploy --force

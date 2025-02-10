@@ -1,2 +1,1 @@
-::: pydaadop.repositories.many.many_read_write_repository
-
+::: pydaadop.repositories.base.base_repository

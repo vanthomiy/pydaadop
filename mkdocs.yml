@@ -101,27 +101,8 @@ nav:
     - Setup: examples/extended/extended_setup.md
     - Run: examples/extended/extended_run.md
   - Full Usage: examples/full.md
-- API Documentation:
-  - Clients:  
-    - Client Factory: api/clients/client_api_factory.md
-    - Base Client: api/clients/base_api_client.md
-    - Read Client: api/clients/read_api_client.md
-    - Read Write Client: api/clients/read_write_api_client.md
-    - Many Read Write Client: api/clients/many_read_write_api_client.md
-  - Database:
-    - Mongo Database: api/database/base_mongo_database.md
-  - Definitions: 
-    - Constraints: api/definitions/constraints.md
-  - Models:
-    - Base Mongo Model: api/models/base_mongo_model.md
-    - Display Info:
-      - Item: api/models/display/display_item_info.md
-      - Query: api/models/display/display_query_info.md
-  - Queries: api/queries/base/queries.md
-  - Repositories: api/repositories.md
-  - Routes: api/routes.md
-  - Services: api/services.md
-  - Utils: api/utils.md
+- API Documentation: []  # Use an empty list as a placeholder
+
 
 markdown_extensions:
 - tables
@@ -159,6 +140,7 @@ watch:
 
 hooks:
 - 'docs/plugins/main.py'
+- 'docs/plugins/auto_api.py'
 
 plugins:
 - social

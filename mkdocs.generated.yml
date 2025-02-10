@@ -1,0 +1,223 @@
+site_name: Pydaadop
+site_description: Data validation using Python type hints
+strict: true
+site_url: https://vanthomiy.github.io/pydaadop/
+theme:
+  name: material
+  custom_dir: docs/theme
+  palette:
+  - media: (prefers-color-scheme)
+    scheme: default
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb
+      name: Switch to light mode
+  - media: '(prefers-color-scheme: light)'
+    scheme: default
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb-outline
+      name: Switch to dark mode
+  - media: '(prefers-color-scheme: dark)'
+    scheme: slate
+    primary: pink
+    accent: pink
+    toggle:
+      icon: material/lightbulb-auto-outline
+      name: Switch to system preference
+  features:
+  - content.tabs.link
+  - content.code.annotate
+  - content.code.copy
+  - announce.dismiss
+  - navigation.tabs
+  - navigation.instant
+  - navigation.instant.prefetch
+  - navigation.instant.preview
+  - navigation.instant.progress
+  - navigation.path
+  - navigation.top
+  - navigation.tracking
+  - navigation.expand
+  - navigation.sections
+  - search.suggest
+  - toc.follow
+  logo: logo-white.svg
+  favicon: favicon.png
+repo_name: pydaadop
+repo_url: https://github.com/vanthomiy/pydaadop
+edit_uri: edit/main/docs/
+extra:
+  version:
+    provider: mike
+  analytics:
+    feedback:
+      title: Was this page helpful?
+      ratings:
+      - icon: material/thumb-up-outline
+        name: This page was helpful
+        data: 1
+        note: Thanks for your feedback!
+      - icon: material/thumb-down-outline
+        name: This page could be improved
+        data: 0
+        note: Thanks for your feedback!
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+extra_css:
+- extra/terminal.css
+- extra/tweaks.css
+- extra/code.css
+extra_javascript:
+- extra/feedback.js
+- extra/fluff.js
+- https://samuelcolvin.github.io/mkdocs-run-code/run_code_main.js
+nav:
+- Get Started:
+  - Welcome to Pydaadop: index.md
+  - Installation: install.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+- Examples:
+  - Quick Setup:
+    - Overview: examples/quick/quick_overview.md
+    - Setup: examples/quick/quick_setup.md
+    - Run: examples/quick/quick_run.md
+  - Extended Usage:
+    - Overview: examples/extended/extended_overview.md
+    - Setup: examples/extended/extended_setup.md
+    - Run: examples/extended/extended_run.md
+  - Full Usage: examples/full.md
+- API Documentation:
+  - api_clients:
+    - base_api_client: api/api_clients/base_api_client.md
+    - client_api_factory: api/api_clients/client_api_factory.md
+    - many_read_write_api_client: api/api_clients/many_read_write_api_client.md
+    - read_api_client: api/api_clients/read_api_client.md
+    - read_write_api_client: api/api_clients/read_write_api_client.md
+  - database:
+    - no_sql:
+      - mongodb: api/database/no_sql/mongodb.md
+  - definitions:
+    - constraints: api/definitions/constraints.md
+  - factories:
+    - base_factory: api/factories/base_factory.md
+    - base_implementation: api/factories/base_implementation.md
+  - models:
+    - base:
+      - base_mongo_model: api/models/base/base_mongo_model.md
+    - display:
+      - display_item_info: api/models/display/display_item_info.md
+      - display_query_info: api/models/display/display_query_info.md
+  - queries:
+    - base:
+      - base_list_filter: api/queries/base/base_list_filter.md
+      - base_paging: api/queries/base/base_paging.md
+      - base_query: api/queries/base/base_query.md
+      - base_range: api/queries/base/base_range.md
+      - base_search: api/queries/base/base_search.md
+      - base_select: api/queries/base/base_select.md
+      - base_sort: api/queries/base/base_sort.md
+  - repositories:
+    - base:
+      - base_read_repository: api/repositories/base/base_read_repository.md
+      - base_read_write_repository: api/repositories/base/base_read_write_repository.md
+      - base_repository: api/repositories/base/base_repository.md
+    - many:
+      - many_read_write_repository: api/repositories/many/many_read_write_repository.md
+  - routes:
+    - base:
+      - base_read_route: api/routes/base/base_read_route.md
+      - base_read_write_route: api/routes/base/base_read_write_route.md
+      - base_route: api/routes/base/base_route.md
+    - many:
+      - many_read_write_route: api/routes/many/many_read_write_route.md
+  - services:
+    - base:
+      - base_read_service: api/services/base/base_read_service.md
+      - base_read_write_service: api/services/base/base_read_write_service.md
+    - interface:
+      - many_read_write_service_interface: api/services/interface/many_read_write_service_interface.md
+      - read_service_interface: api/services/interface/read_service_interface.md
+      - read_write_service_interface: api/services/interface/read_write_service_interface.md
+      - service_interface: api/services/interface/service_interface.md
+    - many:
+      - many_read_write_service: api/services/many/many_read_write_service.md
+  - utils:
+    - constraints:
+      - const_manager: api/utils/constraints/const_manager.md
+    - environment:
+      - env_manager: api/utils/environment/env_manager.md
+markdown_extensions:
+- tables
+- toc:
+    permalink: true
+    title: Page contents
+- admonition
+- pymdownx.details
+- pymdownx.highlight:
+    pygments_lang_class: true
+    anchor_linenums: true
+    use_pygments: true
+    pygments_style: default
+    linenums: false
+- pymdownx.extra
+- pymdownx.inlinehilite
+- pymdownx.details
+- pymdownx.emoji:
+    emoji_index: !!python/name:material.extensions.emoji.twemoji ''
+    emoji_generator: !!python/name:material.extensions.emoji.to_svg ''
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.magiclink
+- attr_list
+- md_in_html
+- pymdownx.snippets:
+    check_paths: true
+- pymdownx.superfences:
+    custom_fences:
+    - name: mermaid
+      class: mermaid
+watch:
+- src/pydaadop
+hooks:
+- docs/plugins/main.py
+- docs/plugins/auto_api.py
+plugins:
+- social
+- swagger-ui-tag
+- mike:
+    alias_type: symlink
+    canonical_version: latest
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths:
+        - src
+        options:
+          members_order: source
+          separate_signature: true
+          docstring_options:
+            ignore_init_summary: true
+          merge_init_into_class: true
+          show_signature_annotations: true
+          signature_crossrefs: true
+          show_submodules: true
+          show_root_full_path: true
+          show_source: true
+          line_numbers: true
+          show_if_no_docstring: true
+          docstring_section: classes
+          show_root_toc_entry: false
+          source_linker: https://github.com/vanthomiy/pydaadop/blob/main/{path}#L{lineno}
+        import:
+        - url: https://docs.python.org/3/objects.inv
+          domains:
+          - py
+          - std

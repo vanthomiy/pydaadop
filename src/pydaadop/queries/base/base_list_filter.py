@@ -14,7 +14,7 @@ class BaseListFilter:
         self.key = key
         self.value = value
 
-    def to_mongo_filter(self):
+    def to_mongo_filter(self) -> dict:
         """
         Convert the filter to a MongoDB filter.
 
