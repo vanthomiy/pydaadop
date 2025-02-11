@@ -194,7 +194,7 @@ class BaseQuery:
         return query_model
 
     @classmethod
-    def split_filter(cls, models: [Type[BaseModel]], filter_data: Dict) -> List[Dict]:
+    def split_filter(cls, models: list[Type[BaseModel]], filter_data: Dict) -> List[Dict]:
         """
         Split the filter data into the different models based on the keys which represent the model fields.
 
@@ -217,7 +217,7 @@ class BaseQuery:
         return split_filter_data
 
     @classmethod
-    def split_sort(cls, models: [Type[BaseModel]], sort_model: BaseSort) -> List[BaseSort | None]:
+    def split_sort(cls, models: list[Type[BaseModel]], sort_model: BaseSort) -> List[BaseSort | None]:
         """
         Split the sort model into the different models based on the sort_by field.
 
