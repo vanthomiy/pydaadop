@@ -1,18 +1,19 @@
 from abc import ABC
 from typing import List, Optional, Dict, Type
 
+from ...services.interface.service_interface import ServiceInterface
+
 from ...models.base.base_mongo_model import BaseMongoModel
 from pydantic import BaseModel
 
 from ..base.base_read_service import BaseReadService
-from ..interface.read_service_interface import ReadServiceInterface
 from ...queries.base.base_list_filter import BaseListFilter
 from ...queries.base.base_paging import BasePaging
 from ...queries.base.base_query import BaseQuery
 from ...queries.base.base_sort import BaseSort
 
 
-class DisplayService(ReadServiceInterface[BaseMongoModel], ABC):
+class DisplayService(ServiceInterface[BaseMongoModel], ABC):
     def __init__(self, model: Type[BaseMongoModel]):
         """
         Initialize the DisplayService with a specific model.
