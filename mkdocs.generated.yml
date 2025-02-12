@@ -141,6 +141,8 @@ nav:
     - base:
       - base_read_service: api/services/base/base_read_service.md
       - base_read_write_service: api/services/base/base_read_write_service.md
+    - display:
+      - display_service: api/services/display/display_service.md
     - interface:
       - many_read_write_service_interface: api/services/interface/many_read_write_service_interface.md
       - read_service_interface: api/services/interface/read_service_interface.md
