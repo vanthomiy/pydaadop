@@ -14,6 +14,13 @@ from ...queries.base.base_sort import BaseSort
 
 
 class DisplayService(ServiceInterface[BaseMongoModel], ABC):
+    """
+    A service class for display operations on MongoDB models.
+
+    Attributes:
+        model (Type[BaseMongoModel]): The model type used by the service.
+    """
+
     def __init__(self, model: Type[BaseMongoModel]):
         """
         Initialize the DisplayService with a specific model.
@@ -116,8 +123,8 @@ class DisplayService(ServiceInterface[BaseMongoModel], ABC):
                 if i == 0:
                     base_filter.update(search_query)
                 else:
-                    # we neet to get all valid ids for the model and update the base filter
-                    items = await services[i].list_keys(["_id"] ,filter_query=filters[i], search_query=search_query)
+                    # we need to get all valid ids for the model and update the base filter
+                    items = await services[i].list_keys(["_id"], filter_query=filters[i], search_query=search_query)
                     list_filter = BaseListFilter(
                         key=foreign_ids[i],
                         value=[item["_id"] for item in items]
