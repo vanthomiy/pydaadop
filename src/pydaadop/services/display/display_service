@@ -17,7 +17,8 @@ class DisplayService(ReadServiceInterface[BaseMongoModel], ABC):
         """
         Initialize the DisplayService with a specific model.
 
-        :param model: The model type to be used by the service.
+        Args:
+            model (Type[BaseMongoModel]): The model type to be used by the service.
         """
         super().__init__(model)
 
@@ -32,12 +33,15 @@ class DisplayService(ReadServiceInterface[BaseMongoModel], ABC):
         """
         Apply the primary filter to the list of models and services based on the provided foreign IDs and queries.
 
-        :param models: List of model types.
-        :param services: List of services corresponding to the models.
-        :param foreign_ids: List of foreign ID fields.
-        :param filter_query: Dictionary containing filter criteria.
-        :param search_query: Dictionary containing search criteria.
-        :return: A dictionary representing the primary filter or None if the input is invalid.
+        Args:
+            models (List[Type[BaseModel]]): List of model types.
+            services (List[BaseReadService[BaseModel]]): List of services corresponding to the models.
+            foreign_ids (list[str]): List of foreign ID fields.
+            filter_query (Dict, optional): Dictionary containing filter criteria.
+            search_query (Dict, optional): Dictionary containing search criteria.
+
+        Returns:
+            dict | None: A dictionary representing the primary filter or None if the input is invalid.
         """
         # check if basic query is valid
         if not models or not services or not foreign_ids:
@@ -85,11 +89,14 @@ class DisplayService(ReadServiceInterface[BaseMongoModel], ABC):
         """
         Apply the search filter to the list of services based on the provided search query.
 
-        :param services: List of services.
-        :param foreign_ids: List of foreign ID fields.
-        :param filters: List of filter dictionaries.
-        :param search_query: Dictionary containing search criteria.
-        :return: A dictionary representing the search filter or None if no matching items are found.
+        Args:
+            services (List[BaseReadService[BaseModel]]): List of services.
+            foreign_ids (list[str]): List of foreign ID fields.
+            filters (list[dict]): List of filter dictionaries.
+            search_query (Dict, optional): Dictionary containing search criteria.
+
+        Returns:
+            dict | None: A dictionary representing the search filter or None if no matching items are found.
         """
         if not search_query or not any(search_query.values()):
             return filters[0]
@@ -135,14 +142,17 @@ class DisplayService(ReadServiceInterface[BaseMongoModel], ABC):
         """
         Retrieve values from the list of models and services based on the provided queries and paging information.
 
-        :param models: List of model types.
-        :param services: List of services corresponding to the models.
-        :param foreign_ids: List of foreign ID fields.
-        :param paging_query: Paging information for the query.
-        :param filter_query: Dictionary containing filter criteria.
-        :param sort_query: Optional sorting criteria.
-        :param search_query: Dictionary containing search criteria.
-        :return: A list of lists containing the retrieved models.
+        Args:
+            models (List[Type[BaseModel]]): List of model types.
+            services (List[BaseReadService[BaseModel]]): List of services corresponding to the models.
+            foreign_ids (list[str]): List of foreign ID fields.
+            paging_query (BasePaging, optional): Paging information for the query.
+            filter_query (Dict, optional): Dictionary containing filter criteria.
+            sort_query (Optional[BaseSort], optional): Optional sorting criteria.
+            search_query (Dict, optional): Dictionary containing search criteria.
+
+        Returns:
+            List[List[BaseModel]]: A list of lists containing the retrieved models.
         """
         base_filter = await cls._apply_primary_filter(
             models=models,
