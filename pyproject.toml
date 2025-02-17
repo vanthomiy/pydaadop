@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pydaadop"
-version = "0.0.0.7"
+version = "0.0.0.8"
 description = "Streamline your Python projects with Dockerized APIs, MongoDB, and Pydantic—simplifying setup and scalability."
 authors = [
     {name = "Your Name", email = "your.email@example.com"}
@@ -21,13 +21,13 @@ classifiers = [
 requires-python = ">=3.8"
 
 dependencies = [
-    'fastapi==0.115.3',
-    'uvicorn==0.32.0',
-    'motor~=3.6.1',
-    'pydantic==2.9.2',
-    'pymongo==4.9.2',
-    'setuptools==75.2.0',
-    'requests==2.32.0'
+    'fastapi>=0.115.3',
+    'uvicorn>=0.32.0',
+    'motor>=3.6.1',
+    'pydantic>=2.9.2',
+    'pymongo>=4.9.2',
+    'setuptools>=75.2.0',
+    'requests>=2.32.0'
 ]
 
 [tool.setuptools.packages.find]
