@@ -12,6 +12,7 @@ def get_mongo_uri() -> str | None:
     Constructs a MongoDB URI from environment variables.
 
     This function reads the following environment variables:
+    - MONGO_CONNECTION_STRING: The MongoDB connection string.
     - MONGODB_USER: The MongoDB username.
     - MONGODB_PASS: The MongoDB password.
     - MONGO_BASE_URL: The base URL of the MongoDB server.
@@ -36,12 +37,17 @@ def get_mongo_uri() -> str | None:
     """
     # Create a dictionary for necessary variables and their values
     env_vars = {
+        'MONGO_CONNECTION_STRING': os.getenv('MONGO_CONNECTION_STRING'),
         'MONGODB_USER': os.getenv('MONGODB_USER'),
         'MONGODB_PASS': os.getenv('MONGODB_PASS'),
         'MONGO_BASE_URL': os.getenv('MONGO_BASE_URL'),
         'MONGO_PORT': os.getenv('MONGO_PORT')
     }
 
+    # check if there is a connection string, then don't build the mongo uri
+    if env_vars['MONGO_CONNECTION_STRING'] is not None:
+        return env_vars['MONGO_CONNECTION_STRING']
+    
     # Check if all required variables are present
     missing_vars = {key: value for key, value in env_vars.items() if value is None}
 
