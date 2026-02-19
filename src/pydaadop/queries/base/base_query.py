@@ -54,7 +54,9 @@ class BaseQuery:
             if literal_type in cls.supported_types:
                 return literal_type, True
             return None, False
-        if issubclass(origin, Enum):
+
+        # Guard issubclass check: origin may be a typing construct (not a class)
+        if isinstance(origin, type) and issubclass(origin, Enum):
             return str, True
 
         # Recursively check nested types if no valid type is found
