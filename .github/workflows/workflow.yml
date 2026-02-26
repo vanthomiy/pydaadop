@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write  # Required for trusted publishing (OIDC)
+      contents: read    # Needed to fetch repository contents
+      packages: write   # Allow publishing package artifacts
+      id-token: write   # Required for trusted publishing (OIDC)
 
     steps:
       - name: Checkout repository
@@ -41,3 +43,8 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Use the API token stored in repository secrets.
+          # Create a PyPI API token and add it to repository secrets as PYPI_API_TOKEN
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
