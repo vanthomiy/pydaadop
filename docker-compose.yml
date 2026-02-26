@@ -4,8 +4,11 @@ services:
   mongo:
     image: mongo:6.0
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    # Do not publish the MongoDB port to the host by default to avoid
+    # conflicts with a locally installed MongoDB. Other containers can
+    # still reach the database on port 27017 through the Docker network.
+    expose:
+      - "27017"
     volumes:
       - mongo_data:/data/db
 
@@ -17,8 +20,11 @@ services:
       - MONGO_CONNECTION_STRING=mongodb://mongo:27017
     depends_on:
       - mongo
-    ports:
-      - "8000:8000"
+    # Do not publish the app port to the host by default to avoid
+    # conflicts with local services. The app remains reachable from
+    # other services on the compose network as `http://app:8000`.
+    expose:
+      - "8000"
     command: ["uvicorn", "examples.demo.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
   test-runner:

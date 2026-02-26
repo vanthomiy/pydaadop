@@ -36,8 +36,14 @@ class BaseRepository(Generic[T]):
         if collection is not None:
             self.collection = collection
         else:
-            # Lazily initialize the database/collection; creating BaseMongoDatabase
-            # may attempt to connect to MongoDB — this keeps behavior explicit and
-            # test-friendly while preserving the original semantics.
-            db = BaseMongoDatabase(model)
-            self.collection = db.collection
+            # Lazily initialize the database/collection on first use. Store a
+            # reference to a BaseMongoDatabase instance but don't force it to
+            # connect until a repository method needs the collection.
+            self._db_wrapper = BaseMongoDatabase(model)
+            self.collection = None
+
+    def _ensure_collection(self):
+        """Ensure a real collection is present, creating DB objects if needed."""
+        if self.collection is None and hasattr(self, "_db_wrapper"):
+            self._db_wrapper._ensure_connection()
+            self.collection = self._db_wrapper.collection
