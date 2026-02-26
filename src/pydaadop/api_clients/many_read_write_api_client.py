@@ -1,7 +1,60 @@
 from pydaadop.api_clients.base_api_client import T
 from .read_write_api_client import ReadWriteApiClient
-from typing import List, Dict, TypeVar
+from typing import List, Dict, TypeVar, Any
 from ..models.base import BaseMongoModel
+
+
+def _extract_ids_from_response(resp: Any) -> List[Any]:
+    """Extract a flat list of ids from common server responses.
+
+    Supported shapes:
+    - dict with key 'ids' or 'inserted_ids' -> the list value
+    - an object with attribute 'inserted_ids' (best-effort)
+    - list of scalars or list of dicts (try to read 'id' or '_id')
+
+    Returns an empty list if no candidate ids are found.
+    """
+    try:
+        # dict responses like {"ids": [...]} or {"inserted_ids": [...]}
+        if isinstance(resp, dict):
+            ids = resp.get("ids") or resp.get("inserted_ids")
+            if isinstance(ids, list):
+                return ids
+            # occasionally APIs return list of inserted documents under other keys
+            # not attempting to guess too much here — return empty when not a list
+            return []
+
+        # some callers may pass through driver objects; try attribute access
+        if hasattr(resp, "inserted_ids"):
+            try:
+                return list(resp.inserted_ids)
+            except Exception:
+                pass
+
+        # list response: either list of scalars or list of dicts
+        if isinstance(resp, list):
+            out: List[Any] = []
+            for el in resp:
+                try:
+                    if isinstance(el, dict):
+                        if "id" in el:
+                            out.append(el["id"])
+                        elif "_id" in el:
+                            out.append(el["_id"])
+                        elif "inserted_id" in el:
+                            out.append(el["inserted_id"])
+                        else:
+                            # fallback: append the whole element
+                            out.append(el)
+                    else:
+                        # scalar value (string/number), use as-is
+                        out.append(el)
+                except Exception:
+                    out.append(el)
+            return out
+    except Exception:
+        pass
+    return []
 
 class ManyReadWriteApiClient(ReadWriteApiClient[T]):
     """
@@ -30,9 +83,27 @@ class ManyReadWriteApiClient(ReadWriteApiClient[T]):
         """
         if not items or len(items) == 0:
             return {}
+
         endpoint = self.model_class.__name__.lower() + "-insert-many"
         dict_items = [item.model_dump() for item in items]
         response_data = self._request("POST", endpoint, json=dict_items)
+
+        # --- map returned ids back onto passed-in items (best-effort) ---
+        try:
+            ids = _extract_ids_from_response(response_data)
+            if ids:
+                n = min(len(ids), len(items))
+                for i in range(n):
+                    try:
+                        # Use str(...) to normalize ObjectId-like values to string
+                        setattr(items[i], "id", str(ids[i]))
+                    except Exception:
+                        # best-effort: ignore mapping errors
+                        pass
+        except Exception:
+            # preserve original behavior on any error
+            pass
+
         return response_data
 
     def update_many(self, items: List[T]) -> Dict:
