@@ -83,10 +83,8 @@ def test_get_type_optional_enum():
 
 
 def test_get_type_bool():
-    # bool is not in supported_types, but bool fields ending in nothing special
-    # should return (None, False) unless they are selectable
+    # bool is not in supported_types [str, int, float]; _get_type returns (None, False)
     t, sel = BaseQuery._get_type(bool)
-    # bool is not in supported_types list [str, int, float]
     assert t is None
 
 
@@ -151,9 +149,8 @@ def test_get_fields_of_model_only_selectable():
     # plain str/float/int are not selectable
     assert "name" not in fields
     assert "price" not in fields
-    # Optional[bool] → _get_type returns (None, False) so active is excluded
-    # bool IS in supported_selectable_types, but _get_type(Optional[bool]) returns (None, False)
-    # The field is only included if field_type itself (not None) is in supported_selectable_types
+    # Optional[bool] excluded: _get_type returns (None, False) since the unwrapped type
+    # must be in supported_selectable_types but bool wraps to None via _get_type.
     assert "active" not in fields
 
 

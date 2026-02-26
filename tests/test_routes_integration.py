@@ -152,11 +152,6 @@ def test_create_item(client_empty: TestClient, sample_product: Product):
 
 
 def test_create_item_already_exists(client_with_items: TestClient, sample_product: Product):
-    # Override repo.exists to return True so create raises 400
-    svc = client_with_items.app.router.routes[0].endpoint  # noqa: unused – we patch via mock
-    # Patch the underlying service repository
-    for route in client_with_items.app.routes:
-        pass  # iterate to trigger lazy route building
     # Inject a new service where exists returns True
     service = make_read_write_service([sample_product])
     service.repository.exists = AsyncMock(return_value=True)
