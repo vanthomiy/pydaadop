@@ -40,7 +40,10 @@ services:
       - MONGO_CONNECTION_STRING=mongodb://mongo:27017
     depends_on:
       - mongo
-    entrypoint: ["pytest", "-v"]
+      - app
+    entrypoint: ["/bin/bash", "-c", "./scripts/wait_and_test.sh"]
+    volumes:
+      - ./:/app:ro
     # Keep logs visible when running interactively
     tty: true
 
