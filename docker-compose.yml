@@ -23,8 +23,13 @@ services:
     # Do not publish the app port to the host by default to avoid
     # conflicts with local services. The app remains reachable from
     # other services on the compose network as `http://app:8000`.
+    # Publish the app port to the host so you can access the OpenAPI docs
+    # at http://localhost:8000/docs. If this conflicts with a local service,
+    # remove the `ports` mapping.
     expose:
       - "8000"
+    ports:
+      - "8000:8000"
     command: ["uvicorn", "examples.demo.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
   test-runner:
