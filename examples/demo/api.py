@@ -12,12 +12,18 @@ from ..models.demo_product import DemoProduct
 app = FastAPI(title="Pydaadop Demo")
 
 # Read-only router for GenericModel (example of read-only API)
-app.include_router(BaseReadRouter(GenericModel).router, prefix="/generic")
+# Include routers without an explicit prefix so the router's internal,
+# model-derived prefix (e.g. '/demoproduct') is used. This keeps
+# behavior consistent for tests that include routers without a prefix
+# and for the demo app.
+app.include_router(BaseReadRouter(GenericModel).router)
 
 # Read-write router for DemoProduct
-app.include_router(BaseReadWriteRouter(DemoProduct).router, prefix="/demoproduct")
+app.include_router(BaseReadWriteRouter(DemoProduct).router)
 
 # Many read-write router for CustomModel
+# Expose many-* endpoints under '/custom' so integration tests can call
+# '/custom-insert-many' and '/custom-delete-many/'.
 app.include_router(ManyReadWriteRouter(CustomModel).router, prefix="/custom")
 
 # MCP router to expose model metadata

@@ -35,7 +35,18 @@ class BaseRouter(Generic[T]):
         self.tags = [model.__name__]
         self.router = APIRouter(tags=self.tags)
         self.model = model
-        self.prefix = f"/{model.__name__.lower()}"  # Store the prefix
+        # Router paths are written relative to a base prefix derived from the
+        # model name (e.g. '/product'). This preserves the historical behavior
+        # where routes are reachable under '/<model-name>/' when the router is
+        # included without an explicit prefix (tests rely on this). When a
+        # caller includes the APIRouter with an explicit prefix they should
+        # avoid duplicating the model segment to prevent double paths.
+        # Normalize model name to a short path segment: strip trailing 'model'
+        # so CustomModel -> '/custom' and DemoProduct -> '/demoproduct'.
+        name = model.__name__.lower()
+        if name.endswith("model"):
+            name = name[:-5]
+        self.prefix = f"/{name}"
         self.setup_routes()
 
     @abstractmethod

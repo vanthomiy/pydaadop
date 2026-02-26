@@ -4,7 +4,9 @@ from typing import List
 import requests
 
 
-BASE = "http://localhost:8000"
+import os
+
+BASE = os.environ.get("BASE_URL", "http://localhost:8000")
 
 
 def wait_for_server(timeout=10.0):

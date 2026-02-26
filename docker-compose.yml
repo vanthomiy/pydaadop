@@ -41,7 +41,7 @@ services:
     depends_on:
       - mongo
       - app
-    entrypoint: ["/bin/bash", "-c", "./scripts/wait_and_test.sh"]
+    entrypoint: ["/bin/bash", "-c", "BASE_URL=http://app:8000 ./scripts/wait_and_test.sh"]
     volumes:
       - ./:/app:ro
     # Keep logs visible when running interactively
