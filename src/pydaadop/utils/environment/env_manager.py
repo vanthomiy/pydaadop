@@ -35,28 +35,30 @@ def get_mongo_uri() -> str | None:
         >>> get_mongo_uri()
         'mongodb://user:pass@localhost:27017'
     """
-    # Create a dictionary for necessary variables and their values
-    env_vars = {
-        'MONGO_CONNECTION_STRING': os.getenv('MONGO_CONNECTION_STRING'),
+    # check if there is a connection string, then don't build the mongo uri
+    connection_string = os.getenv('MONGO_CONNECTION_STRING')
+    if connection_string is not None:
+        return connection_string
+
+    # Fall back to building the URI from individual components
+    component_vars = {
         'MONGODB_USER': os.getenv('MONGODB_USER'),
         'MONGODB_PASS': os.getenv('MONGODB_PASS'),
         'MONGO_BASE_URL': os.getenv('MONGO_BASE_URL'),
-        'MONGO_PORT': os.getenv('MONGO_PORT')
+        'MONGO_PORT': os.getenv('MONGO_PORT'),
     }
 
-    # check if there is a connection string, then don't build the mongo uri
-    if env_vars['MONGO_CONNECTION_STRING'] is not None:
-        return env_vars['MONGO_CONNECTION_STRING']
-    
     # Check if all required variables are present
-    missing_vars = {key: value for key, value in env_vars.items() if value is None}
+    missing_vars = [key for key, value in component_vars.items() if value is None]
 
     if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars.keys())}")
+        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
     # Construct the MONGO_URI
-    mongo_uri = f"mongodb://{env_vars['MONGODB_USER']}:{env_vars['MONGODB_PASS']}@" \
-                f"{env_vars['MONGO_BASE_URL']}:{env_vars['MONGO_PORT']}"
+    mongo_uri = (
+        f"mongodb://{component_vars['MONGODB_USER']}:{component_vars['MONGODB_PASS']}@"
+        f"{component_vars['MONGO_BASE_URL']}:{component_vars['MONGO_PORT']}"
+    )
 
     return mongo_uri
 

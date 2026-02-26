@@ -66,7 +66,7 @@ class BaseQuery:
         return None, False
 
     @classmethod
-    def _is_supported_type(cls, field_type: type, is_selectable: bool, name: str, only_selectable: True) -> bool:
+    def _is_supported_type(cls, field_type: type, is_selectable: bool, name: str, only_selectable: bool) -> bool:
         """
         Check if the field type is supported.
 
@@ -241,6 +241,8 @@ class BaseQuery:
         for i, model in enumerate(models):
             if sort_by in get_type_hints(model):
                 return [BaseSort(sort_by=sort_by, sort_order=sort_model.sort_order) if j == i else None for j in range(len(models))]
+
+        return [None for _ in range(len(models))]
 
 
     @classmethod
