@@ -3,8 +3,8 @@ import uvicorn
 from pydaadop.routes.base.base_read_write_route import BaseReadWriteRouter
 from pydaadop.routes.many.many_read_write_route import ManyReadWriteRouter
 
-from generic_model import GenericModel
-from custom_model import CustomModel
+from ..models.generic_model import GenericModel
+from ..models.custom_model import CustomModel
 import os
 
 # Create FastAPI app
