@@ -41,10 +41,16 @@ jobs:
       - name: Build package
         run: python -m build
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (token)
+        if: ${{ secrets.PYPI_API_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Use the API token stored in repository secrets.
-          # Create a PyPI API token and add it to repository secrets as PYPI_API_TOKEN
+          # Use the API token stored in repository secrets (fallback if OIDC not configured)
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish to PyPI (OIDC trusted publisher)
+        if: ${{ secrets.PYPI_API_TOKEN == '' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # No `with` inputs: the action will use GitHub OIDC to authenticate if a
+        # trusted publisher and environment (pypi) are configured on PyPI.

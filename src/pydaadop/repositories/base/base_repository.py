@@ -33,4 +33,11 @@ class BaseRepository(Generic[T]):
             collection (AsyncIOMotorCollection, optional): The MongoDB collection. Defaults to None.
         """
         self.model = model
-        self.collection = collection if collection else BaseMongoDatabase(model).collection
+        if collection is not None:
+            self.collection = collection
+        else:
+            # Lazily initialize the database/collection; creating BaseMongoDatabase
+            # may attempt to connect to MongoDB — this keeps behavior explicit and
+            # test-friendly while preserving the original semantics.
+            db = BaseMongoDatabase(model)
+            self.collection = db.collection
