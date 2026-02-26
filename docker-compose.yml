@@ -1,22 +1,37 @@
+version: "3.8"
+
 services:
   mongo:
-    image: mongo:latest
-    command: mongod --port ${MONGO_PORT}
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
-    container_name: pydaadop-mongo-example
+    image: mongo:6.0
+    restart: unless-stopped
     ports:
-      - "${MONGO_PORT}:${MONGO_PORT}"  # Expose MongoDB on port 27017
+      - "27017:27017"
     volumes:
-      - mongo_data:/data/db  # Persist MongoDB data
-    networks:
-      - pydaadop-example-network  # Shared network
+      - mongo_data:/data/db
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongo:27017
+    depends_on:
+      - mongo
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "examples.demo.api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongo:27017
+    depends_on:
+      - mongo
+    entrypoint: ["pytest", "-v"]
+    # Keep logs visible when running interactively
+    tty: true
 
 volumes:
-  mongo_data:  # Define a named volume for MongoDB data persistence
-
-networks:
-  pydaadop-example-network:
-    external: true  # Use the same external network
+  mongo_data:
