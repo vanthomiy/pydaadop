@@ -1,0 +1,17 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Keep output visible
+ENV PYTHONUNBUFFERED=1
+
+# Copy package sources and tests
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+COPY tests/ ./tests/
+
+# Install packaging/build tools and dev dependencies, then run tests
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir ".[dev]"
+
+CMD ["pytest", "-v"]

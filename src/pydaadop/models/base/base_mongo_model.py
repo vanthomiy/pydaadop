@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from bson import ObjectId
 from typing import Optional, List, Dict, Any
 
@@ -16,22 +16,13 @@ class BaseMongoModel(BaseModel):
         id (Optional[PyObjectId]): The unique identifier for the document, mapped from MongoDB's _id.
     """
 
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+    )
+
     id: Optional[PyObjectId] = Field(default_factory=lambda: str(ObjectId()), alias="_id")
-
-    class Config:
-        """
-        Pydantic configuration for the BaseMongoModel.
-
-        Attributes:
-            populate_by_name (bool): Allow aliasing of fields.
-            arbitrary_types_allowed (bool): Allow arbitrary types like ObjectId.
-            json_encoders (dict): Custom JSON encoders for specific types.
-        """
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {
-            ObjectId: str  # Ensures that ObjectId is serialized as string
-        }
 
     def model_dump(self, *args: dict, **kwargs: dict) -> Dict[str, Any]:
         """

@@ -43,6 +43,7 @@ class BaseReadWriteRepository(BaseReadRepository[T]):
         Returns:
             T: The created item.
         """
+        self._ensure_collection()
         result = await self.collection.insert_one(item.model_dump())
         item.id = str(result.inserted_id)  # Ensure the model has an 'id' field
         return item
@@ -58,6 +59,7 @@ class BaseReadWriteRepository(BaseReadRepository[T]):
         Returns:
             Optional[T]: The updated item, or None if not found.
         """
+        self._ensure_collection()
         await self.collection.update_one(keys_filter_query, {"$set": item_data.model_dump(ignore_id=True)})
         return await self.get_by_id(keys_filter_query)
 
@@ -68,4 +70,5 @@ class BaseReadWriteRepository(BaseReadRepository[T]):
         Args:
             keys_filter_query (dict): The key filter query.
         """
+        self._ensure_collection()
         await self.collection.delete_one(keys_filter_query)

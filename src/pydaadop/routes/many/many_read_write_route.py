@@ -62,7 +62,12 @@ class ManyReadWriteRouter(BaseReadWriteRouter[T]):
                 dict: The IDs of the created items.
             """
             created_item = await self.service.create_many(items)
-            return {"ids": created_item.inserted_ids}
+            # Ensure the returned IDs are JSON serializable (convert ObjectId -> str)
+            try:
+                ids = [str(i) for i in created_item.inserted_ids]
+            except Exception:
+                ids = list(created_item.inserted_ids)
+            return {"ids": ids}
 
         @self.router.put(f"{self.prefix}-update-many")
         async def update_many(items: List[model]) -> dict:
@@ -81,7 +86,8 @@ class ManyReadWriteRouter(BaseReadWriteRouter[T]):
             updated_item = await self.service.update_many(items)
             if not updated_item:
                 raise HTTPException(status_code=404, detail="Item not found")
-            return {"ids": updated_item.modified_count}
+            # return a simple numeric summary
+            return {"modified_count": int(getattr(updated_item, "modified_count", 0))}
 
         @self.router.put(f"{self.prefix}-update-field-many")
         async def update_field_many(key_filter_queries: List[key_filter_model], data: dict):

@@ -1,22 +1,51 @@
+version: "3.8"
+
 services:
   mongo:
-    image: mongo:latest
-    command: mongod --port ${MONGO_PORT}
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
-    container_name: pydaadop-mongo-example
-    ports:
-      - "${MONGO_PORT}:${MONGO_PORT}"  # Expose MongoDB on port 27017
+    image: mongo:6.0
+    restart: unless-stopped
+    # Do not publish the MongoDB port to the host by default to avoid
+    # conflicts with a locally installed MongoDB. Other containers can
+    # still reach the database on port 27017 through the Docker network.
+    expose:
+      - "27017"
     volumes:
-      - mongo_data:/data/db  # Persist MongoDB data
-    networks:
-      - pydaadop-example-network  # Shared network
+      - mongo_data:/data/db
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongo:27017
+    depends_on:
+      - mongo
+    # Do not publish the app port to the host by default to avoid
+    # conflicts with local services. The app remains reachable from
+    # other services on the compose network as `http://app:8000`.
+    # Publish the app port to the host so you can access the OpenAPI docs
+    # at http://localhost:8000/docs. If this conflicts with a local service,
+    # remove the `ports` mapping.
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "examples.demo.api:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - MONGO_CONNECTION_STRING=mongodb://mongo:27017
+    depends_on:
+      - mongo
+      - app
+    entrypoint: ["/bin/bash", "-c", "BASE_URL=http://app:8000 ./scripts/wait_and_test.sh"]
+    volumes:
+      - ./:/app:ro
+    # Keep logs visible when running interactively
+    tty: true
 
 volumes:
-  mongo_data:  # Define a named volume for MongoDB data persistence
-
-networks:
-  pydaadop-example-network:
-    external: true  # Use the same external network
+  mongo_data:

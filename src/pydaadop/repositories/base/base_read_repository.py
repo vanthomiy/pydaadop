@@ -46,6 +46,7 @@ class BaseReadRepository(BaseRepository[T]):
         Returns:
             bool: True if the item exists, False otherwise.
         """
+        self._ensure_collection()
         return await self.collection.count_documents(keys_filter_query) > 0
 
     async def get_by_id(self, keys_filter_query: dict) -> Optional[T]:
@@ -58,6 +59,7 @@ class BaseReadRepository(BaseRepository[T]):
         Returns:
             Optional[T]: The retrieved item, or None if not found.
         """
+        self._ensure_collection()
         data = await self.collection.find_one(keys_filter_query)
         return self.model(**data) if data else None
 
@@ -83,6 +85,7 @@ class BaseReadRepository(BaseRepository[T]):
             filter_query = {}
         filter_query.update(search_query or {})
 
+        self._ensure_collection()
         cursor = self.collection.find(filter_query).skip(paging_query.skip()).limit(paging_query.limit())
 
         if sort_query and sort_query.sort_by and sort_query.sort_order:
@@ -116,6 +119,7 @@ class BaseReadRepository(BaseRepository[T]):
         filter_query.update(search_query or {})
 
         # Use self.collection to perform the query, projecting only the _id field
+        self._ensure_collection()
         cursor = self.collection.find(filter_query, {key: 1 for key in keys})
 
         if sort_query and sort_query.sort_by and sort_query.sort_order:
@@ -145,5 +149,6 @@ class BaseReadRepository(BaseRepository[T]):
             filter_query = {}
         filter_query.update(search_query or {})
 
+        self._ensure_collection()
         count = await self.collection.count_documents(filter_query)
         return DisplayItemInfo(items_count=count)

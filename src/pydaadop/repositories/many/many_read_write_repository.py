@@ -45,6 +45,7 @@ class ManyReadWriteRepository(BaseReadWriteRepository[T]):
         Returns:
             InsertManyResult: The result of the insert operation.
         """
+        self._ensure_collection()
         serialized_items = [item.model_dump(by_alias=True) for item in items]
         return await self.collection.insert_many(serialized_items, ordered=False)
 
@@ -58,6 +59,7 @@ class ManyReadWriteRepository(BaseReadWriteRepository[T]):
         Returns:
             BulkWriteResult: The result of the update operation.
         """
+        self._ensure_collection()
         bulk_write_operations = [UpdateOne(item.model_dump_keys(), {"$set": item.model_dump()}) for item in items]
         return await self.collection.bulk_write(bulk_write_operations)
 
@@ -72,6 +74,7 @@ class ManyReadWriteRepository(BaseReadWriteRepository[T]):
         Returns:
             BulkWriteResult: The result of the update operation.
         """
+        self._ensure_collection()
         bulk_write_operations = [UpdateOne(key_filter, {"$set": data}) for key_filter in keys_filter_query]
         return await self.collection.bulk_write(bulk_write_operations)
 
@@ -85,4 +88,5 @@ class ManyReadWriteRepository(BaseReadWriteRepository[T]):
         Returns:
             DeleteResult: The result of the delete operation.
         """
+        self._ensure_collection()
         return await self.collection.delete_many({"$or": keys_filter_query})
