@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    ".agents/instructions/git-commands.md",
+    ".agents/instructions/project-docker-commands.md",
+    ".agents/instructions/how-to-work.md",
+    ".agents/plan/example-plan.md"
+  ]
+}
