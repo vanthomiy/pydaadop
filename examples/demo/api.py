@@ -22,9 +22,10 @@ app.include_router(BaseReadRouter(GenericModel).router)
 app.include_router(BaseReadWriteRouter(DemoProduct).router)
 
 # Many read-write router for CustomModel
-# Expose many-* endpoints under '/custom' so integration tests can call
-# '/custom-insert-many' and '/custom-delete-many/'.
-app.include_router(ManyReadWriteRouter(CustomModel).router, prefix="/custom")
+# Expose many-* endpoints at root so integration tests can call
+# '/custom-insert-many' and '/custom-delete-many/'. Mounting with no
+# external prefix ensures the final path matches test expectations.
+app.include_router(ManyReadWriteRouter(CustomModel).router)
 
 # MCP router to expose model metadata
 mcp = MCPRouter()
