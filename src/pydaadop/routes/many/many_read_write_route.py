@@ -50,6 +50,9 @@ class ManyReadWriteRouter(BaseReadWriteRouter[T]):
         key_filter_model = self.service.create_key_filter()
         model = self.model  # Store the model locally for static use
 
+        # Define routes relative to the router's own prefix so mounting with
+        # an external prefix (e.g. '/custom') yields the expected path
+        # (e.g. '/custom-insert-many').
         @self.router.post(f"{self.prefix}-insert-many")
         async def create_many(items: List[model]) -> dict:
             """

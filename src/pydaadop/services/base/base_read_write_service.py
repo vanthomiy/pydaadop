@@ -51,9 +51,22 @@ class BaseReadWriteService(ReadWriteServiceInterface[S], BaseReadService[S], ABC
         Raises:
             HTTPException: If the item already exists.
         """
-        existing_item = await self.repository.exists(item.model_dump_keys())
+        # Compute the keys used for uniqueness checks. Exclude any
+        # auto-generated MongoDB id ("_id") since client-side default
+        # id generation can produce spurious matches. If there are no
+        # meaningful keys (empty dict) we skip the existence check and
+        # allow creation.
+        keys_filter = item.model_dump_keys()
+        # remove _id if present
+        keys_filter.pop("_id", None)
+
+        existing_item = False
+        if keys_filter:
+            existing_item = await self.repository.exists(keys_filter)
+
         if existing_item:
             raise HTTPException(status_code=400, detail="Item already exists.")
+
         return await self.repository.create(item)
 
     @override

@@ -29,7 +29,7 @@ services:
     expose:
       - "8000"
     ports:
-      - "8000:8000"
+      - "8002:8000"
     command: ["uvicorn", "examples.demo.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
   test-runner:

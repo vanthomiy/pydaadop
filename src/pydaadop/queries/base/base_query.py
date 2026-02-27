@@ -242,6 +242,10 @@ class BaseQuery:
             if sort_by in get_type_hints(model):
                 return [BaseSort(sort_by=sort_by, sort_order=sort_model.sort_order) if j == i else None for j in range(len(models))]
 
+        # If the sort_by field does not exist on any of the provided models,
+        # return a list of Nones to indicate no cross-model sort can be applied.
+        return [None for _ in range(len(models))]
+
 
     @classmethod
     def extract_filter(cls, filter_model: BaseModel, exclude=True) -> dict:
