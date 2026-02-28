@@ -18,6 +18,7 @@ from ...queries.base.base_paging import BasePaging
 
 T = TypeVar("T", bound=BaseMongoModel)
 
+
 class BaseReadRepository(BaseRepository[T]):
     """
     A repository class for reading MongoDB models.
@@ -63,11 +64,41 @@ class BaseReadRepository(BaseRepository[T]):
         data = await self.collection.find_one(keys_filter_query)
         return self.model(**data) if data else None
 
+    async def get_many_by_ids(
+        self, ids: List, projection: Dict[str, Any] = None
+    ) -> List[T]:
+        """Fetch multiple documents by their _id values.
+
+        Args:
+            ids: list of ObjectId or string ids
+            projection: optional projection dict
+
+        Returns:
+            List of model instances
+        """
+        self._ensure_collection()
+        if not ids:
+            return []
+        # Normalize ids to ObjectId when possible
+        from ...relations.core import (
+            normalize_id,
+        )  # local import to avoid cycle at module import
+
+        norm_ids = [normalize_id(i) for i in ids]
+        # If projection is None keep signature compatible with collection.find
+        if projection is not None:
+            cursor = self.collection.find({"_id": {"$in": norm_ids}}, projection)
+        else:
+            cursor = self.collection.find({"_id": {"$in": norm_ids}})
+        items = [self.model(**item) async for item in cursor]
+        return items
+
     async def list(
-            self, paging_query: BasePaging = BasePaging(),
-            filter_query: Dict = None,
-            sort_query: Optional[BaseSort] = None,
-            search_query: Dict = None
+        self,
+        paging_query: BasePaging = BasePaging(),
+        filter_query: Dict = None,
+        sort_query: Optional[BaseSort] = None,
+        search_query: Dict = None,
     ) -> List[T]:
         """
         List items based on various queries.
@@ -86,7 +117,11 @@ class BaseReadRepository(BaseRepository[T]):
         filter_query.update(search_query or {})
 
         self._ensure_collection()
-        cursor = self.collection.find(filter_query).skip(paging_query.skip()).limit(paging_query.limit())
+        cursor = (
+            self.collection.find(filter_query)
+            .skip(paging_query.skip())
+            .limit(paging_query.limit())
+        )
 
         if sort_query and sort_query.sort_by and sort_query.sort_order:
             sort_order = 1 if sort_query.sort_order == "asc" else -1
@@ -97,10 +132,11 @@ class BaseReadRepository(BaseRepository[T]):
         return items
 
     async def list_keys(
-            self, keys: List[str],
-            filter_query: Dict = None,
-            search_query: Dict = None,
-            sort_query: Optional[BaseSort] = None,
+        self,
+        keys: List[str],
+        filter_query: Dict = None,
+        search_query: Dict = None,
+        sort_query: Optional[BaseSort] = None,
     ) -> List[Dict]:
         """
         List keys of items based on various queries.
@@ -133,7 +169,9 @@ class BaseReadRepository(BaseRepository[T]):
         # Directly extract the ID from the result
         return result_keys
 
-    async def info(self, filter_query: Dict = None, search_query: Dict = None) -> DisplayItemInfo:
+    async def info(
+        self, filter_query: Dict = None, search_query: Dict = None
+    ) -> DisplayItemInfo:
         """
         Get item information based on various queries.
 

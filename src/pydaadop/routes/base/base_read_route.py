@@ -22,6 +22,7 @@ from .base_route import BaseRouter
 
 T = TypeVar("T", bound=BaseMongoModel)  # Generic type for the model class
 
+
 class BaseReadRouter(BaseRouter[T]):
     """
     A router class for reading MongoDB models.
@@ -52,8 +53,13 @@ class BaseReadRouter(BaseRouter[T]):
         Returns:
             dict: The updated OpenAPI schema.
         """
-        models = [self.service.create_filter(), self.service.create_key_filter(), self.service.create_range(), self.service.create_sort(),
-                  self.service.create_select()]
+        models = [
+            self.service.create_filter(),
+            self.service.create_key_filter(),
+            self.service.create_range(),
+            self.service.create_sort(),
+            self.service.create_select(),
+        ]
 
         # Ensure the components section exists
         if schema.get("components") is None:
@@ -84,7 +90,9 @@ class BaseReadRouter(BaseRouter[T]):
         sort_model = self.service.create_sort()
         select_model = self.service.create_select()
 
-        @self.router.get(f"{self.prefix}/display-info/query/", response_model=DisplayQueryInfo)
+        @self.router.get(
+            f"{self.prefix}/display-info/query/", response_model=DisplayQueryInfo
+        )
         async def get_display_query_info():
             """
             Get display query information.
@@ -95,11 +103,14 @@ class BaseReadRouter(BaseRouter[T]):
             display_info = await self.service.query_info(model=model)
             return display_info
 
-        @self.router.get(f"{self.prefix}/display-info/item/", response_model=DisplayItemInfo)
+        @self.router.get(
+            f"{self.prefix}/display-info/item/", response_model=DisplayItemInfo
+        )
         async def get_display_item_info(
-                filter_query: filter_model = Depends(),
-                range_query: range_model = Depends(),
-                search_query: BaseSearch = Depends()):
+            filter_query: filter_model = Depends(),
+            range_query: range_model = Depends(),
+            search_query: BaseSearch = Depends(),
+        ):
             """
             Get display item information.
 
@@ -113,17 +124,25 @@ class BaseReadRouter(BaseRouter[T]):
             """
             range_dict = BaseQuery.extract_range(range_query)
             filter_dict = BaseQuery.extract_filter(filter_model=filter_query)
-            search_dict = BaseQuery.extract_search(model=model, search_model=search_query)
-            display_info = await self.service.item_info(filter_query=filter_dict, range_query=range_dict, search_query=search_dict)
+            search_dict = BaseQuery.extract_search(
+                model=model, search_model=search_query
+            )
+            display_info = await self.service.item_info(
+                filter_query=filter_dict,
+                range_query=range_dict,
+                search_query=search_dict,
+            )
             return display_info
 
         @self.router.get(f"{self.prefix}/", response_model=List[model])
         async def get_all(
-                sort_query: sort_model = Depends(),
-                range_query: range_model = Depends(),
-                paging_query: BasePaging = Depends(),
-                filter_query: filter_model = Depends(),
-                search_query: BaseSearch = Depends()):
+            sort_query: sort_model = Depends(),
+            range_query: range_model = Depends(),
+            paging_query: BasePaging = Depends(),
+            filter_query: filter_model = Depends(),
+            search_query: BaseSearch = Depends(),
+            include: str | None = None,
+        ):
             """
             Get all items.
 
@@ -140,17 +159,34 @@ class BaseReadRouter(BaseRouter[T]):
             range_dict = BaseQuery.extract_range(range_query)
             filter_dict = BaseQuery.extract_filter(filter_query)
             search_dict = BaseQuery.extract_search(model, search_query)
-            items = await self.service.list(filter_query=filter_dict, sort_query=sort_query, paging_query=paging_query,
-                                            range_query=range_dict, search_query=search_dict)
+            items = await self.service.list(
+                filter_query=filter_dict,
+                sort_query=sort_query,
+                paging_query=paging_query,
+                range_query=range_dict,
+                search_query=search_dict,
+            )
+
+            if include:
+                includes = [s.strip() for s in include.split(",") if s.strip()]
+                try:
+                    from ...relations.core import load_relations
+
+                    await load_relations(items, include=includes)
+                except Exception:
+                    # Swallow errors to avoid breaking endpoints if repos aren't registered
+                    pass
+
             return items
 
         @self.router.get(f"{self.prefix}/select/", response_model=List[dict])
         async def get_all_select(
-                select_query: select_model = Depends(),
-                range_query: range_model = Depends(),
-                sort_query: sort_model = Depends(),
-                filter_query: filter_model = Depends(),
-                search_query: BaseSearch = Depends()):
+            select_query: select_model = Depends(),
+            range_query: range_model = Depends(),
+            sort_query: sort_model = Depends(),
+            filter_query: filter_model = Depends(),
+            search_query: BaseSearch = Depends(),
+        ):
             """
             Get all items with selected fields.
 
@@ -168,13 +204,17 @@ class BaseReadRouter(BaseRouter[T]):
             range_dict = BaseQuery.extract_range(range_query)
             filter_dict = BaseQuery.extract_filter(filter_query)
             search_dict = BaseQuery.extract_search(model, search_query)
-            items = await self.service.list_keys(keys=keys, filter_query=filter_dict, sort_query=sort_query,
-                                                 range_query=range_dict, search_query=search_dict)
+            items = await self.service.list_keys(
+                keys=keys,
+                filter_query=filter_dict,
+                sort_query=sort_query,
+                range_query=range_dict,
+                search_query=search_dict,
+            )
 
             # Adjust the _id to be string instead of ObjectId
             for item in items:
                 item["_id"] = str(item["_id"])
-
 
             return items
 
@@ -192,9 +232,10 @@ class BaseReadRouter(BaseRouter[T]):
             key_filter_dict = BaseQuery.extract_filter(key_filter_query)
             return await self.service.exists(key_filter_dict)
 
-
         @self.router.get(f"{self.prefix}/item/", response_model=model)
-        async def get_item(key_filter_query: key_filter_model = Depends()):
+        async def get_item(
+            key_filter_query: key_filter_model = Depends(), include: str | None = None
+        ):
             """
             Get an item.
 
@@ -211,5 +252,14 @@ class BaseReadRouter(BaseRouter[T]):
             item = await self.service.get(key_filter_dict)
             if not item:
                 raise HTTPException(status_code=404, detail="Item not found")
-            return item
 
+            if include:
+                includes = [s.strip() for s in include.split(",") if s.strip()]
+                try:
+                    from ...relations.core import load_relations
+
+                    await load_relations([item], include=includes)
+                except Exception:
+                    pass
+
+            return item

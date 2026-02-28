@@ -24,8 +24,9 @@ from ...queries.base.base_select import BaseSelect
 from ...queries.base.base_sort import BaseSort
 from ...repositories.base.base_read_repository import BaseReadRepository
 
-S = TypeVar('S', bound=BaseMongoModel)
-R = TypeVar('R', bound=BaseReadRepository[BaseMongoModel])
+S = TypeVar("S", bound=BaseMongoModel)
+R = TypeVar("R", bound=BaseReadRepository[BaseMongoModel])
+
 
 class BaseReadService(ReadServiceInterface[S], ABC):
     """
@@ -129,13 +130,15 @@ class BaseReadService(ReadServiceInterface[S], ABC):
         return item
 
     @override
-    async def list(self,
-                   paging_query: BasePaging = BasePaging(),
-                   filter_query: Dict = None,
-                   sort_query: Optional[BaseSort] = None,
-                   search_query: Dict = None,
-                   range_query: Dict = None,
-                   list_filter: BaseListFilter = None) -> List[S]:
+    async def list(
+        self,
+        paging_query: BasePaging = BasePaging(),
+        filter_query: Dict = None,
+        sort_query: Optional[BaseSort] = None,
+        search_query: Dict = None,
+        range_query: Dict = None,
+        list_filter: BaseListFilter = None,
+    ) -> List[S]:
         """
         List items based on various queries.
 
@@ -153,16 +156,24 @@ class BaseReadService(ReadServiceInterface[S], ABC):
         filter_query = self._update_filter_query(filter_query, list_filter)
         if range_query:
             filter_query.update(range_query)
-        return await self.repository.list(paging_query, filter_query, sort_query, search_query)
+        items = await self.repository.list(
+            paging_query, filter_query, sort_query, search_query
+        )
+
+        # Optionally load relations if repository/service layer provides repos mapping
+        # The routes/controllers can call relations.load_relations directly when needed.
+        return items
 
     @override
-    async def list_keys(self,
-                        keys: List[str],
-                        filter_query: Dict = None,
-                        search_query: Dict = None,
-                        sort_query: Optional[BaseSort] = None,
-                        range_query: Dict = None,
-                        list_filter: BaseListFilter = None) -> List[Dict]:
+    async def list_keys(
+        self,
+        keys: List[str],
+        filter_query: Dict = None,
+        search_query: Dict = None,
+        sort_query: Optional[BaseSort] = None,
+        range_query: Dict = None,
+        list_filter: BaseListFilter = None,
+    ) -> List[Dict]:
         """
         List keys of items based on various queries.
 
@@ -180,14 +191,21 @@ class BaseReadService(ReadServiceInterface[S], ABC):
         filter_query = self._update_filter_query(filter_query, list_filter)
         if range_query:
             filter_query.update(range_query)
-        return await self.repository.list_keys(keys=keys, filter_query=filter_query, search_query=search_query, sort_query=sort_query)
+        return await self.repository.list_keys(
+            keys=keys,
+            filter_query=filter_query,
+            search_query=search_query,
+            sort_query=sort_query,
+        )
 
     @override
-    async def item_info(self,
-                        filter_query: Dict = None,
-                        search_query: Dict = None,
-                        range_query: Dict = None,
-                        list_filter: BaseListFilter = None) -> DisplayItemInfo:
+    async def item_info(
+        self,
+        filter_query: Dict = None,
+        search_query: Dict = None,
+        range_query: Dict = None,
+        list_filter: BaseListFilter = None,
+    ) -> DisplayItemInfo:
         """
         Get item information based on various queries.
 
@@ -218,5 +236,5 @@ class BaseReadService(ReadServiceInterface[S], ABC):
         """
         return DisplayQueryInfo(
             filter_info=BaseQuery.create_display_filter_info(model),
-            sort_info=BaseQuery.create_display_sort_info(model)
+            sort_info=BaseQuery.create_display_sort_info(model),
         )
