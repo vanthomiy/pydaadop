@@ -198,7 +198,8 @@ async def load_relations(
         for item in items:
             raw = getattr(item, rel.by, None)
             if raw is None:
-                setattr(item, rel.name, None if not rel.many else [])
+                # set attribute directly to avoid pydantic validation on assignment
+                object.__setattr__(item, rel.name, None if not rel.many else [])
                 continue
             if rel.many and isinstance(raw, (list, tuple)):
                 out = [
@@ -206,9 +207,9 @@ async def load_relations(
                     for r in raw
                     if byid.get(str(normalize_id(r)))
                 ]
-                setattr(item, rel.name, out)
+                object.__setattr__(item, rel.name, out)
             else:
-                setattr(item, rel.name, byid.get(str(normalize_id(raw))))
+                object.__setattr__(item, rel.name, byid.get(str(normalize_id(raw))))
 
     # Run relation tasks in parallel
     await asyncio.gather(*[_process_relation(r) for r in to_process])

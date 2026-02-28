@@ -7,6 +7,33 @@ from pydaadop.routes.mcp import MCPRouter
 from ..models.generic_model import GenericModel
 from ..models.custom_model import CustomModel
 from ..models.demo_product import DemoProduct
+from ..routes.custom_demo_route import router as custom_demo_router
+from pydaadop.relations.core import register_repo
+
+
+# Create a tiny in-memory repo for demo use when MongoDB is not available.
+class _InMemoryRepo:
+    def __init__(self, items):
+        # items should be model instances
+        self._items = items
+
+    async def get_many_by_ids(self, ids, projection=None):
+        s = {
+            str(getattr(item, "id", getattr(item, "_id", None))): item
+            for item in self._items
+        }
+        out = []
+        for i in ids:
+            key = str(i)
+            if key in s:
+                out.append(s[key])
+        return out
+
+
+# Register a default empty demo repo for demoproduct so example routes don't
+# crash when no Mongo instance is running. Tests or example code can replace
+# this with a populated repo at runtime if desired.
+register_repo("demoproduct", _InMemoryRepo([]))
 
 
 app = FastAPI(title="Pydaadop Demo")
@@ -33,6 +60,9 @@ mcp.register(GenericModel)
 mcp.register(DemoProduct)
 mcp.register(CustomModel)
 app.include_router(mcp.router)
+
+# Register example custom demo router
+app.include_router(custom_demo_router)
 
 
 @app.get("/health")

@@ -8,6 +8,7 @@ from pydaadop.relations.core import (
     load_relations,
 )
 from pydaadop.models.base.base_mongo_model import BaseMongoModel
+from typing import Any
 
 
 class Tag(BaseMongoModel):
@@ -17,7 +18,7 @@ class Tag(BaseMongoModel):
 
 class ResultWithTags(BaseMongoModel):
     id: ObjectId
-    tag_ids: list
+    tag_ids: Any
 
 
 class FakeTagRepo:
@@ -25,8 +26,19 @@ class FakeTagRepo:
         self.items = items
 
     async def get_many_by_ids(self, ids, projection=None):
-        s = {str(i): i for i in self.items}
-        return [s.get(str(i)) for i in ids if s.get(str(i))]
+        s = {
+            str(getattr(item, "id", getattr(item, "_id", None))): item
+            for item in self.items
+        }
+        # debug print for test investigation
+        print("FakeTagRepo.get_many_by_ids called with ids:", [str(i) for i in ids])
+        print("FakeTagRepo available keys:", list(s.keys()))
+        result = []
+        for i in ids:
+            key = str(i)
+            if key in s:
+                result.append(s[key])
+        return result
 
 
 @pytest.mark.asyncio

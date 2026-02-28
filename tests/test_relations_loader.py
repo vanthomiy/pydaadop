@@ -8,6 +8,7 @@ from pydaadop.relations.core import (
     load_relations,
 )
 from pydaadop.models.base.base_mongo_model import BaseMongoModel
+from typing import Any
 
 
 class Athlete(BaseMongoModel):
@@ -17,7 +18,7 @@ class Athlete(BaseMongoModel):
 
 class Result(BaseMongoModel):
     id: ObjectId
-    athlete_id: ObjectId
+    athlete_id: Any
     # relation metadata defined via __fields__ extras would normally be set by Field(...),
     # but here we simulate it by constructing a Relation manually in tests.
 
@@ -27,8 +28,17 @@ class FakeRepo:
         self.items = items
 
     async def get_many_by_ids(self, ids, projection=None):
-        s = {str(i): i for i in self.items}
-        return [s.get(str(i)) for i in ids if s.get(str(i))]
+        # build map from id string -> item
+        s = {
+            str(getattr(item, "id", getattr(item, "_id", None))): item
+            for item in self.items
+        }
+        result = []
+        for i in ids:
+            key = str(i)
+            if key in s:
+                result.append(s[key])
+        return result
 
 
 @pytest.mark.asyncio
