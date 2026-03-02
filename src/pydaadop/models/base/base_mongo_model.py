@@ -3,9 +3,42 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from bson import ObjectId
 from typing import Optional, List, Dict, Any
+import string
 
-# Create a type alias for ObjectId
-PyObjectId = str
+
+# PyObjectId: pydantic-friendly ObjectId type
+class PyObjectId:
+    """A wrapper type that tells pydantic how to validate/serialize Mongo ObjectId.
+
+    Accepts bson.ObjectId or 24-char hex strings (with optional surrounding quotes).
+    Internally values are stored as bson.ObjectId instances.
+    """
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        # Already an ObjectId
+        if isinstance(v, ObjectId):
+            return v
+        # Strings: strip whitespace and surrounding quotes
+        if isinstance(v, str):
+            s = v.strip()
+            if len(s) >= 2 and ((s[0] == s[-1]) and s[0] in ("'", '"')):
+                s = s[1:-1].strip()
+            if len(s) == 24 and all(c in string.hexdigits for c in s):
+                try:
+                    return ObjectId(s)
+                except Exception:
+                    pass
+        # Fall back: raise error so pydantic knows this isn't valid
+        raise TypeError("value is not a valid ObjectId or hex string")
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        field_schema.update(type="string")
 
 
 class BaseMongoModel(BaseModel):
@@ -22,7 +55,8 @@ class BaseMongoModel(BaseModel):
         json_encoders={ObjectId: str},
     )
 
-    id: Optional[PyObjectId] = Field(default_factory=lambda: str(ObjectId()), alias="_id")
+    # store _id as a real ObjectId internally; serialize to str when encoding to JSON
+    id: Optional[PyObjectId] = Field(default_factory=lambda: ObjectId(), alias="_id")
 
     def model_dump(self, *args: dict, **kwargs: dict) -> Dict[str, Any]:
         """
@@ -41,11 +75,13 @@ class BaseMongoModel(BaseModel):
         # Convert datetime fields to string (ISO 8601 format)
         for key, value in data.items():
             if isinstance(value, datetime):
-                data[key] = value.isoformat()  # Convert datetime to string in ISO format
+                data[key] = (
+                    value.isoformat()
+                )  # Convert datetime to string in ISO format
             elif isinstance(value, ObjectId):
                 data[key] = str(value)  # Convert ObjectId to string
         # extract ignore_id from args
-        ignore_id = kwargs.get('ignore_id', False)
+        ignore_id = kwargs.get("ignore_id", False)
 
         # If 'id' is None, exclude it from the serialized output
         if self.id is not None and not ignore_id:
@@ -86,6 +122,8 @@ class BaseMongoModel(BaseModel):
         serialized_data = self.model_dump(*args, **kwargs)
 
         # Select only the indexed fields
-        filtered_data = {key: serialized_data[key] for key in index_keys if key in serialized_data}
+        filtered_data = {
+            key: serialized_data[key] for key in index_keys if key in serialized_data
+        }
 
         return filtered_data
