@@ -78,11 +78,26 @@ def get_relations_for_model(model: Type[BaseModel]) -> Dict[str, Relation]:
         rel = meta.get("relation")
         if not rel:
             continue
+        # Resolve model reference: allow either a class or an import-path string
+        model_ref = rel.get("model")
+        resolved_model = None
+        if isinstance(model_ref, str):
+            try:
+                from importlib import import_module
+
+                mod_name, class_name = model_ref.rsplit(".", 1)
+                mod = import_module(mod_name)
+                resolved_model = getattr(mod, class_name)
+            except Exception:
+                resolved_model = None
+        else:
+            resolved_model = model_ref
+
         # Build Relation dataclass from provided metadata
         r = Relation(
             name=name,
             by=rel.get("by") or f"{name}_id",
-            model=rel.get("model"),
+            model=resolved_model,
             repo_key=rel.get("repo"),
             many=bool(rel.get("many", False)),
             include_by_default=rel.get("include_by_default", False),

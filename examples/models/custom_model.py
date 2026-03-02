@@ -20,7 +20,9 @@ class CustomModel(GenericModel):
         default=None,
         relation={
             "by": "product_id",
-            "model": DemoProduct,
+            # store model reference as import path string to avoid putting
+            # a class object into Field extras (which breaks OpenAPI JSON schema)
+            "model": "examples.models.demo_product.DemoProduct",
             "repo": "demoproduct",
             "many": False,
             "include_by_default": False,
