@@ -56,7 +56,7 @@ class PyObjectId(ObjectId):
         return core_schema.no_info_plain_validator_function(_validate)
 
     @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema_):
+    def __get_pydantic_json_schema__(cls, core_schema_, handler=None):
         return {"type": "string", "format": "objectid"}
 
 
