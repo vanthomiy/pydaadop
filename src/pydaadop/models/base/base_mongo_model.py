@@ -7,11 +7,11 @@ import string
 
 
 # PyObjectId: pydantic-friendly ObjectId type
-class PyObjectId:
+class PyObjectId(ObjectId):
     """A wrapper type that tells pydantic how to validate/serialize Mongo ObjectId.
 
-    Accepts bson.ObjectId or 24-char hex strings (with optional surrounding quotes).
-    Internally values are stored as bson.ObjectId instances.
+    Accepts bson.ObjectId or hex strings. Internally values are stored as bson.ObjectId instances.
+    Compatible with Pydantic v2 via core/json schema hooks.
     """
 
     @classmethod
@@ -20,10 +20,8 @@ class PyObjectId:
 
     @classmethod
     def validate(cls, v):
-        # Already an ObjectId
         if isinstance(v, ObjectId):
             return v
-        # Strings: strip whitespace and surrounding quotes
         if isinstance(v, str):
             s = v.strip()
             if len(s) >= 2 and ((s[0] == s[-1]) and s[0] in ("'", '"')):
@@ -33,12 +31,25 @@ class PyObjectId:
                     return ObjectId(s)
                 except Exception:
                     pass
-        # Fall back: raise error so pydantic knows this isn't valid
         raise TypeError("value is not a valid ObjectId or hex string")
 
     @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+    def __get_pydantic_core_schema__(cls, source, handler):
+        from pydantic import core_schema
+
+        def _validate(v, info):
+            if isinstance(v, ObjectId):
+                return v
+            try:
+                return ObjectId(str(v))
+            except Exception:
+                raise TypeError("value is not a valid ObjectId or hex string")
+
+        return core_schema.no_info_plain_validator_function(_validate)
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema_):
+        return {"type": "string", "format": "objectid"}
 
 
 class BaseMongoModel(BaseModel):
