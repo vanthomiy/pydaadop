@@ -1,1 +1,1 @@
-git+https://github.com/vanthomiy/pydaadop@main
+pydaadop @ git+https://github.com/vanthomiy/pydaadop@main

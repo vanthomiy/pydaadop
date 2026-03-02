@@ -4,6 +4,9 @@ WORKDIR /app
 
 # Install build dependencies
 RUN pip install --no-cache-dir --upgrade pip
+\
+# Ensure Pydantic v2 is installed so pydantic.core_schema is available
+RUN pip install --no-cache-dir "pydantic==2.9.2" "pydantic-core"
 
 # Copy project files
 COPY pyproject.toml README.md ./

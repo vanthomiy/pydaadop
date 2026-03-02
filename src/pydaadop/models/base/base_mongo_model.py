@@ -35,11 +35,13 @@ class PyObjectId(ObjectId):
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source, handler):
+        # Prefer pydantic_core first (more likely present in minimal images),
+        # then fall back to pydantic wrapper if available.
         try:
-            from pydantic import core_schema
+            from pydantic_core import core_schema
         except Exception:
             try:
-                from pydantic_core import core_schema
+                from pydantic import core_schema
             except Exception:
                 raise RuntimeError(
                     "pydantic v2 is required for PyObjectId, please install pydantic>=2"

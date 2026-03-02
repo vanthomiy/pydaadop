@@ -12,6 +12,7 @@ COPY tests/ ./tests/
 
 # Install packaging/build tools and dev dependencies, then run tests
 RUN pip install --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir "pydantic==2.9.2" "pydantic-core"
 RUN pip install --no-cache-dir ".[dev]"
 
 CMD ["pytest", "-v"]
