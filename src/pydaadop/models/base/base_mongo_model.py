@@ -47,7 +47,7 @@ class PyObjectId(ObjectId):
                     "pydantic v2 is required for PyObjectId, please install pydantic>=2"
                 )
 
-        def _validate(v, info):
+        def _validate(v):
             if isinstance(v, ObjectId):
                 return v
             try:
