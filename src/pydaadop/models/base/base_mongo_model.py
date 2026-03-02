@@ -35,7 +35,15 @@ class PyObjectId(ObjectId):
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source, handler):
-        from pydantic import core_schema
+        try:
+            from pydantic import core_schema
+        except Exception:
+            try:
+                from pydantic_core import core_schema
+            except Exception:
+                raise RuntimeError(
+                    "pydantic v2 is required for PyObjectId, please install pydantic>=2"
+                )
 
         def _validate(v, info):
             if isinstance(v, ObjectId):
