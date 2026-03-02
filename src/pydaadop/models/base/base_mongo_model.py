@@ -31,7 +31,7 @@ class PyObjectId(ObjectId):
                     return ObjectId(s)
                 except Exception:
                     pass
-        raise TypeError("value is not a valid ObjectId or hex string")
+        raise ValueError("value is not a valid ObjectId or hex string")
 
     @classmethod
     def __get_pydantic_core_schema__(cls, source, handler):
@@ -53,7 +53,7 @@ class PyObjectId(ObjectId):
             try:
                 return ObjectId(str(v))
             except Exception:
-                raise TypeError("value is not a valid ObjectId or hex string")
+                raise ValueError("value is not a valid ObjectId or hex string")
 
         return core_schema.no_info_plain_validator_function(_validate)
 
