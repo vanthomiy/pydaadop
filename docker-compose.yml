@@ -41,9 +41,10 @@ services:
     depends_on:
       - mongo
       - app
-    entrypoint: ["/bin/bash", "-c", "BASE_URL=http://app:8000 ./scripts/wait_and_test.sh"]
-    volumes:
-      - ./:/app:ro
+    # Invoke the script explicitly with bash to avoid shebang/CRLF/exec issues
+    entrypoint: ["/bin/bash", "-c", "BASE_URL=http://app:8000 bash ./scripts/wait_and_test.sh"]
+    # Do not mount the host workspace into the test-runner container to avoid
+    # CRLF/shebang problems; the test image contains the necessary script files.
     # Keep logs visible when running interactively
     tty: true
 

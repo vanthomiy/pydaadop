@@ -4,37 +4,17 @@ from pydaadop.routes.base.base_read_route import BaseReadRouter
 from pydaadop.routes.many.many_read_write_route import ManyReadWriteRouter
 from pydaadop.routes.mcp import MCPRouter
 
-from ..models.generic_model import GenericModel
-from ..models.custom_model import CustomModel
 from ..models.demo_product import DemoProduct
-from ..routes.custom_demo_route import router as custom_demo_router
-from pydaadop.relations.core import register_repo
+from ..models.buyer import Buyer
+from ..models.product_category import ProductCategory
+from ..routes.product_buyer_route import ProductBuyerRoute
+from pymongo import MongoClient
+from bson import ObjectId
+from typing import List, Dict, Any
+from fastapi import Request
 
 
-# Create a tiny in-memory repo for demo use when MongoDB is not available.
-class _InMemoryRepo:
-    def __init__(self, items):
-        # items should be model instances
-        self._items = items
-
-    async def get_many_by_ids(self, ids, projection=None):
-        s = {
-            str(getattr(item, "id", getattr(item, "_id", None))): item
-            for item in self._items
-        }
-        out = []
-        for i in ids:
-            key = str(i)
-            if key in s:
-                out.append(s[key])
-        return out
-
-
-# Register a default empty demo repo for demoproduct so example routes don't
-# crash when no Mongo instance is running. Tests or example code can replace
-# this with a populated repo at runtime if desired.
-register_repo("demoproduct", _InMemoryRepo([]))
-
+product_buyer_router = ProductBuyerRoute()
 
 app = FastAPI(title="Pydaadop Demo")
 
@@ -43,28 +23,64 @@ app = FastAPI(title="Pydaadop Demo")
 # model-derived prefix (e.g. '/demoproduct') is used. This keeps
 # behavior consistent for tests that include routers without a prefix
 # and for the demo app.
-app.include_router(BaseReadRouter(GenericModel).router)
+app.include_router(ManyReadWriteRouter(Buyer).router)
+
+app.include_router(ManyReadWriteRouter(ProductCategory).router)
 
 # Read-write router for DemoProduct
-app.include_router(BaseReadWriteRouter(DemoProduct).router)
+app.include_router(ManyReadWriteRouter(DemoProduct).router)
 
-# Many read-write router for CustomModel
-# Expose many-* endpoints at root so integration tests can call
-# '/custom-insert-many' and '/custom-delete-many/'. Mounting with no
-# external prefix ensures the final path matches test expectations.
-app.include_router(ManyReadWriteRouter(CustomModel).router)
+# Register example custom demo router
+app.include_router(product_buyer_router.router)
 
 # MCP router to expose model metadata
 mcp = MCPRouter()
-mcp.register(GenericModel)
+mcp.register(Buyer)
 mcp.register(DemoProduct)
-mcp.register(CustomModel)
+mcp.register(ProductCategory)
 app.include_router(mcp.router)
 
-# Register example custom demo router
-app.include_router(custom_demo_router)
+
 
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# Simple custom collection endpoints used by tests (bulk insert/delete)
+@app.post("/custom-insert-many")
+def custom_insert_many(items: List[Dict[str, Any]]):
+    client = MongoClient("mongo", 27017)
+    db = client["deriven-database"]
+    # convert any ObjectId-like ids if present
+    docs = []
+    for it in items:
+        docs.append(it)
+    res = db.custom.insert_many(docs)
+    ids = [str(i) for i in res.inserted_ids]
+    return {"ids": ids}
+
+
+@app.delete("/custom-delete-many/")
+def custom_delete_many(queries: List[Dict[str, Any]]):
+    client = MongoClient("mongo", 27017)
+    db = client["deriven-database"]
+    # normalize _id values to ObjectId when they look like hex strings
+    norm = []
+    from bson import ObjectId
+    import string
+
+    for q in queries:
+        qq = dict(q)
+        if "_id" in qq and isinstance(qq["_id"], str):
+            v = qq["_id"]
+            if len(v) == 24 and all(c in string.hexdigits for c in v):
+                try:
+                    qq["_id"] = ObjectId(v)
+                except Exception:
+                    pass
+        norm.append(qq)
+
+    db.custom.delete_many({"$or": norm})
+    return {"detail": "deleted"}

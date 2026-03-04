@@ -30,7 +30,7 @@ class ReadWriteApiClient(ReadApiClient[T]):
             inserted_item = client.insert(new_item)
         """
         endpoint = self.model_class.__name__.lower()
-        item_dict = item.model_dump()
+        item_dict = item.model_dump(ignore_id=True)
         response_data = self._request("POST", endpoint, json=item_dict)
         return self.model_class(**response_data)
 

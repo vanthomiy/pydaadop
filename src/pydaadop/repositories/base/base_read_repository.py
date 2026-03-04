@@ -129,6 +129,30 @@ class BaseReadRepository(BaseRepository[T]):
                 cursor = cursor.sort(sort_query.sort_by, sort_order)
 
         items = [self.model(**item) async for item in cursor]
+        
+        # Normalize any ObjectId elements inside list fields to strings so
+        # returned items are consistent for API consumers and tests.
+        try:
+            from bson import ObjectId
+
+            for it in items:
+                for attr, val in list(getattr(it, "__dict__", {}).items()):
+                    if isinstance(val, (list, tuple)) and val:
+                        # convert ObjectId elements to strings
+                        new_list = []
+                        changed = False
+                        for el in val:
+                            if isinstance(el, ObjectId):
+                                new_list.append(str(el))
+                                changed = True
+                            else:
+                                new_list.append(el)
+                        if changed:
+                            object.__setattr__(it, attr, new_list)
+        except Exception:
+            # best-effort only; do not fail the request on normalization errors
+            pass
+
         return items
 
     async def list_keys(

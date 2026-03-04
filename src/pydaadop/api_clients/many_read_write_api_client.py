@@ -85,7 +85,7 @@ class ManyReadWriteApiClient(ReadWriteApiClient[T]):
             return {}
 
         endpoint = self.model_class.__name__.lower() + "-insert-many"
-        dict_items = [item.model_dump() for item in items]
+        dict_items = [item.model_dump(ignore_id=True) for item in items]
         response_data = self._request("POST", endpoint, json=dict_items)
 
         # --- map returned ids back onto passed-in items (best-effort) ---

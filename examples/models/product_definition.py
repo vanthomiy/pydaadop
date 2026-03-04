@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class MyDefinition(str, Enum):
+class ProductDefinition(str, Enum):
     A = 'allow'
     B = 'below'
     C = 'celow'

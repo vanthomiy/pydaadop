@@ -1,9 +1,9 @@
 from typing import Dict, TypeVar, Type, cast
 
 from .base_api_client import T, BaseApiClient
-from ..api_clients.many_read_write_api_client import ManyReadWriteApiClient
-from ..api_clients.read_api_client import ReadApiClient
-from ..api_clients.read_write_api_client import ReadWriteApiClient
+from .many_read_write_api_client import ManyReadWriteApiClient
+from .read_api_client import ReadApiClient
+from .read_write_api_client import ReadWriteApiClient
 from ..models.base import BaseMongoModel
 
 
@@ -35,7 +35,8 @@ class ClientFactory:
             factory = ClientFactory("http://localhost:8000/")
             read_client = factory.get_read_client(MyModel)
         """
-        if model_class not in self.clients:
+        existing = self.clients.get(model_class)
+        if not isinstance(existing, ReadApiClient):
             self.clients[model_class] = ReadApiClient(self.base_url, model_class, self.headers)
         return cast(ReadApiClient[T], self.clients[model_class])
 
@@ -53,7 +54,8 @@ class ClientFactory:
             factory = ClientFactory("http://localhost:8000/")
             read_write_client = factory.get_read_write_client(MyModel)
         """
-        if model_class not in self.clients:
+        existing = self.clients.get(model_class)
+        if not isinstance(existing, ReadWriteApiClient):
             self.clients[model_class] = ReadWriteApiClient(self.base_url, model_class, self.headers)
         return cast(ReadWriteApiClient[T], self.clients[model_class])
 
@@ -71,6 +73,7 @@ class ClientFactory:
             factory = ClientFactory("http://localhost:8000/")
             many_read_write_client = factory.get_many_read_write_client(MyModel)
         """
-        if model_class not in self.clients:
+        existing = self.clients.get(model_class)
+        if not isinstance(existing, ManyReadWriteApiClient):
             self.clients[model_class] = ManyReadWriteApiClient(self.base_url, model_class, self.headers)
         return cast(ManyReadWriteApiClient[T], self.clients[model_class])

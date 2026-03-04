@@ -5,6 +5,7 @@ class DemoProduct(BaseMongoModel):
     name: str
     price: float
 
+
     @staticmethod
     def create_index():
         return ["name"]
