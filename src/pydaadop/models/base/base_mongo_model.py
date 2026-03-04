@@ -3,63 +3,11 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 from bson import ObjectId
 from typing import Optional, List, Dict, Any
-import string
-
-
-# PyObjectId: pydantic-friendly ObjectId type
-class PyObjectId(ObjectId):
-    """A wrapper type that tells pydantic how to validate/serialize Mongo ObjectId.
-
-    Accepts bson.ObjectId or hex strings. Internally values are stored as bson.ObjectId instances.
-    Compatible with Pydantic v2 via core/json schema hooks.
-    """
-
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if isinstance(v, ObjectId):
-            return v
-        if isinstance(v, str):
-            s = v.strip()
-            if len(s) >= 2 and ((s[0] == s[-1]) and s[0] in ("'", '"')):
-                s = s[1:-1].strip()
-            if len(s) == 24 and all(c in string.hexdigits for c in s):
-                try:
-                    return ObjectId(s)
-                except Exception:
-                    pass
-        raise ValueError("value is not a valid ObjectId or hex string")
-
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source, handler):
-        # Prefer pydantic_core first (more likely present in minimal images),
-        # then fall back to pydantic wrapper if available.
-        try:
-            from pydantic_core import core_schema
-        except Exception:
-            try:
-                from pydantic import core_schema
-            except Exception:
-                raise RuntimeError(
-                    "pydantic v2 is required for PyObjectId, please install pydantic>=2"
-                )
-
-        def _validate(v):
-            if isinstance(v, ObjectId):
-                return v
-            try:
-                return ObjectId(str(v))
-            except Exception:
-                raise ValueError("value is not a valid ObjectId or hex string")
-
-        return core_schema.no_info_plain_validator_function(_validate)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, core_schema_, handler=None):
-        return {"type": "string", "format": "objectid"}
+import base64
+import uuid
+from decimal import Decimal
+from enum import Enum
+from datetime import date, time
 
 
 class BaseMongoModel(BaseModel):
@@ -67,7 +15,8 @@ class BaseMongoModel(BaseModel):
     Base model for MongoDB documents using Pydantic.
 
     Attributes:
-        id (Optional[PyObjectId]): The unique identifier for the document, mapped from MongoDB's _id.
+        id (Optional[str]): The unique identifier for the document, mapped from MongoDB's _id.
+            By default a new ObjectId hex string is generated.
     """
 
     model_config = ConfigDict(
@@ -76,10 +25,18 @@ class BaseMongoModel(BaseModel):
         json_encoders={ObjectId: str},
     )
 
-    # store _id as a real ObjectId internally; serialize to str when encoding to JSON
-    id: Optional[PyObjectId] = Field(default_factory=lambda: ObjectId(), alias="_id")
+    # store _id as a string (ObjectId hex) by default — simplifies serialization
+    id: Optional[str] = Field(default_factory=lambda: str(ObjectId()), alias="_id")
 
-    def model_dump(self, *args: dict, **kwargs: dict) -> Dict[str, Any]:
+    def __init__(self, **data):
+        # Coerce any incoming ObjectId values to hex strings for consistency
+        if "_id" in data and isinstance(data["_id"], ObjectId):
+            data["_id"] = str(data["_id"])
+        if "id" in data and isinstance(data["id"], ObjectId):
+            data["id"] = str(data["id"])
+        super().__init__(**data)
+
+    def model_dump(self, *args, **kwargs) -> Dict[str, Any]:
         """
         Serialize the model to a dictionary, with special handling for datetime and ObjectId fields.
 
@@ -90,26 +47,120 @@ class BaseMongoModel(BaseModel):
         Returns:
             Dict[str, Any]: The serialized model as a dictionary.
         """
-        # Serialize with conditions: only include 'id' if it is not None
-        data = super().model_dump()
+        # Pull out our special flag, pass the rest through to pydantic
+        ignore_id = kwargs.pop("ignore_id", False)
+        # Let pydantic perform its dump respecting caller kwargs
+        try:
+            data = super().model_dump(*args, **kwargs)
+        except TypeError:
+            # Older pydantic signatures? fall back without args
+            data = super().model_dump()
 
-        # Convert datetime fields to string (ISO 8601 format)
-        for key, value in data.items():
-            if isinstance(value, datetime):
-                data[key] = (
-                    value.isoformat()
-                )  # Convert datetime to string in ISO format
-            elif isinstance(value, ObjectId):
-                data[key] = str(value)  # Convert ObjectId to string
-        # extract ignore_id from args
-        ignore_id = kwargs.get("ignore_id", False)
+        # Sanitize recursively to ensure JSON-safe primitives and detect cycles
+        def _sanitize(obj, _seen=None, _depth=0):
+            if _seen is None:
+                _seen = set()
+            # protect against pathological recursion
+            if _depth > 200:
+                return str(obj)
 
-        # If 'id' is None, exclude it from the serialized output
+            # simple primitives
+            if obj is None or isinstance(obj, (str, bool, int, float)):
+                return obj
+
+            # avoid revisiting same container
+            oid = id(obj)
+            if oid in _seen:
+                return str(obj)
+            _seen.add(oid)
+
+            # pydantic models -> dict
+            if isinstance(obj, BaseModel):
+                try:
+                    sub = obj.model_dump()
+                except Exception:
+                    _seen.discard(oid)
+                    return str(obj)
+                res = _sanitize(sub, _seen=_seen, _depth=_depth + 1)
+                _seen.discard(oid)
+                return res
+
+            # dict -> sanitize keys and values
+            if isinstance(obj, dict):
+                out = {}
+                for k, v in obj.items():
+                    try:
+                        key = str(k)
+                    except Exception:
+                        key = repr(k)
+                    out[key] = _sanitize(v, _seen=_seen, _depth=_depth + 1)
+                _seen.discard(oid)
+                return out
+
+            # sequences -> list
+            if isinstance(obj, (list, tuple, set, frozenset)):
+                out = [_sanitize(v, _seen=_seen, _depth=_depth + 1) for v in obj]
+                _seen.discard(oid)
+                return out
+
+            # datetime/date/time -> iso
+            if isinstance(obj, (datetime, date, time)):
+                _seen.discard(oid)
+                try:
+                    return obj.isoformat()
+                except Exception:
+                    return str(obj)
+
+            # bson ObjectId
+            if isinstance(obj, ObjectId):
+                _seen.discard(oid)
+                return str(obj)
+
+            # bytes -> base64
+            if isinstance(obj, (bytes, bytearray)):
+                try:
+                    out = base64.b64encode(bytes(obj)).decode("ascii")
+                except Exception:
+                    out = str(obj)
+                _seen.discard(oid)
+                return out
+
+            # Decimal -> string to avoid float precision loss
+            if isinstance(obj, Decimal):
+                _seen.discard(oid)
+                return str(obj)
+
+            # UUID -> string
+            if isinstance(obj, uuid.UUID):
+                _seen.discard(oid)
+                return str(obj)
+
+            # Enum -> value or name
+            if isinstance(obj, Enum):
+                _seen.discard(oid)
+                return obj.value if hasattr(obj, "value") else str(obj)
+
+            # fallback to string representation
+            try:
+                out = str(obj)
+            except Exception:
+                out = repr(obj)
+            _seen.discard(oid)
+            return out
+
+        sanitized = _sanitize(data)
+
+        # Ensure we always return a mapping
+        if not isinstance(sanitized, dict):
+            sanitized = {"value": sanitized}
+
+        # If id exists and caller didn't ask to ignore it, expose as _id
         if self.id is not None and not ignore_id:
-            data["_id"] = self.id
-        data.pop("id", None)
+            sanitized["_id"] = str(self.id)
+        # remove the plain 'id' key to keep API surface stable
+        sanitized.pop("id", None)
 
-        return data
+        return sanitized
 
     @staticmethod
     def create_index() -> List[str]:

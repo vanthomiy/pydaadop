@@ -12,12 +12,12 @@ from typing import Any
 
 
 class Athlete(BaseMongoModel):
-    id: ObjectId
+    id: str
     name: str
 
 
 class Result(BaseMongoModel):
-    id: ObjectId
+    id: str
     athlete_id: Any
     # relation metadata defined via __fields__ extras would normally be set by Field(...),
     # but here we simulate it by constructing a Relation manually in tests.
@@ -43,11 +43,11 @@ class FakeRepo:
 
 @pytest.mark.asyncio
 async def test_normalize_id_and_load_relations():
-    a1 = Athlete(id=ObjectId(), name="A1")
-    a2 = Athlete(id=ObjectId(), name="A2")
+    a1 = Athlete(id=str(ObjectId()), name="A1")
+    a2 = Athlete(id=str(ObjectId()), name="A2")
 
-    r1 = Result(id=ObjectId(), athlete_id=a1.id)
-    r2 = Result(id=ObjectId(), athlete_id=str(a2.id))
+    r1 = Result(id=str(ObjectId()), athlete_id=a1.id)
+    r2 = Result(id=str(ObjectId()), athlete_id=str(a2.id))
 
     # patch get_relations_for_model to return a single relation definition
     rel = Relation(

@@ -12,12 +12,12 @@ from typing import Any
 
 
 class Tag(BaseMongoModel):
-    id: ObjectId
+    id: str
     name: str
 
 
 class ResultWithTags(BaseMongoModel):
-    id: ObjectId
+    id: str
     tag_ids: Any
 
 
@@ -43,10 +43,10 @@ class FakeTagRepo:
 
 @pytest.mark.asyncio
 async def test_register_repo_and_many_relation():
-    t1 = Tag(id=ObjectId(), name="t1")
-    t2 = Tag(id=ObjectId(), name="t2")
+    t1 = Tag(id=str(ObjectId()), name="t1")
+    t2 = Tag(id=str(ObjectId()), name="t2")
 
-    r = ResultWithTags(id=ObjectId(), tag_ids=[t1.id, str(t2.id)])
+    r = ResultWithTags(id=str(ObjectId()), tag_ids=[t1.id, str(t2.id)])
 
     rel = Relation(name="tags", by="tag_ids", model=Tag, repo_key="tag", many=True)
 
