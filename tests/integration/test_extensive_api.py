@@ -2,7 +2,7 @@ import time
 from typing import List
 
 import os
-import requests
+from src.pydaadop.api_clients.client_api_factory import ClientFactory
 from examples.models.demo_product import DemoProduct as DemoProductModel
 from examples.models.buyer import Buyer as BuyerModel
 from examples.models.product_category import ProductCategory as ProductCategoryModel
@@ -17,11 +17,12 @@ BASE = os.environ.get("BASE_URL", "http://localhost:8000")
 
 def wait_for_server(timeout=15.0):
     start = time.time()
+    factory = ClientFactory(BASE)
+    client = factory.get_read_client(DemoProductModel)
     while time.time() - start < timeout:
         try:
-            r = requests.get(f"{BASE}/health")
-            if r.status_code == 200:
-                return True
+            client.get_all()
+            return True
         except Exception:
             pass
         time.sleep(0.2)

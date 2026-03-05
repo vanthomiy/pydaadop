@@ -1,3 +1,5 @@
+from typing import Optional
+
 from src.pydaadop.models.base.base_mongo_model import BaseMongoModel
 
 
@@ -6,7 +8,7 @@ class ProductBuyerDisplay(BaseMongoModel):
     buyer_id: str
     product_name: str
     buyer_name: str
-    amount: int
+    amount: Optional[int]
 
 
     @staticmethod
