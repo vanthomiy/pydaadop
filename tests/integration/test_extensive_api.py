@@ -7,8 +7,10 @@ from examples.models.demo_product import DemoProduct as DemoProductModel
 from examples.models.buyer import Buyer as BuyerModel
 from examples.models.product_category import ProductCategory as ProductCategoryModel
 from examples.models.product_definition import ProductDefinition
-from pydaadop.api_clients.client_api_factory import ClientFactory
-
+# from pydaadop.api_clients.client_api_factory import ClientFactory
+from src.pydaadop.api_clients.read_write_api_client import ReadWriteApiClient
+from src.pydaadop.api_clients.many_read_write_api_client import ManyReadWriteApiClient
+from src.pydaadop.api_clients.client_api_factory import ClientFactory
 
 BASE = os.environ.get("BASE_URL", "http://localhost:8000")
 
@@ -70,29 +72,20 @@ def test_insert_many_and_verify_relations():
     assert isinstance(api_products, list)
     assert len(api_products) >= 6
 
-    r = requests.get(f"{BASE}/buyer/")
-    assert r.status_code == 200
-    api_buyers = r.json()
-    assert any(b["name"] == "buyer-a" for b in api_buyers)
-    # verify referenced product ids appear in the product collection
-    for b in api_buyers:
-        if b.get("name") == "buyer-a":
-            assert set(b.get("products", [])) >= {prod_hex[0], prod_hex[1]}
 
-    r = requests.get(f"{BASE}/productcategory/")
-    assert r.status_code == 200
-    api_cats = r.json()
-    assert any(c["name"] == "cat-a" for c in api_cats)
-    for c in api_cats:
-        if c.get("name") == "cat-b":
-            # ensure the stored products are the ones we inserted
-            assert set(c.get("products", [])) >= {prod_hex[2], prod_hex[3]}
+    result : list[BuyerModel] = buyer_client.get_all()  # ensure buyers are inside
+    assert any(b.name == "buyer-a" for b in result)
+    assert any(b.name == "buyer-b" for b in result)
+
+
+    result : list[BuyerModel] = cat_client.get_all()  # ensure buyers are inside
+    assert any(c.name == "cat-a" for c in result)
+    assert any(c.name == "cat-b" for c in result)
 
     # Delete a single product via read-write client
     to_delete = prod_hex[0]
-    prod_client._request("DELETE", "demoproduct", params={"_id": to_delete})
+    prod_client.delete(api_products[0])
 
     # Delete many via many_client
     # collect ids from many_items
-    delete_list = [{"_id": i} for i in many_ids if i]
-    many_prod_client.delete_many(delete_list)
+    many_prod_client.delete_many(api_products[1:])

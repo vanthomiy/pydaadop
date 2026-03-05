@@ -54,7 +54,7 @@ class ReadWriteApiClient(ReadApiClient[T]):
         response_data = self._request("PUT", endpoint, json=item_dict)
         return self.model_class(**response_data)
 
-    def delete(self, key_filter_query: Optional[Dict[str, Any]]) -> None:
+    def delete(self, key_filter_query: Optional[Dict[str, Any] | str | T] = None) -> None:
         """
         Deletes an item from the database.
 
@@ -64,6 +64,23 @@ class ReadWriteApiClient(ReadApiClient[T]):
         Example:
             client.delete({"id": "123"})
         """
-        _params = self._parse_query(key_filter_query=key_filter_query)
+        # Normalize input: accept an id string, a dict filter, or a model instance
+        if key_filter_query is None:
+            raise ValueError("delete requires a filter dict, id string, or model instance")
+
+        # If a model instance was provided, convert to key filter dict
+        try:
+            # model instances from pydantic will have `model_dump_keys`
+            if hasattr(key_filter_query, "model_dump_keys"):
+                key_filter_query = key_filter_query.model_dump_keys()
+        except Exception:
+            pass
+
+        # If provided a bare id string, wrap as _id
+        if isinstance(key_filter_query, str):
+            key_filter_query = {"_id": key_filter_query}
+
+        # Use the public parse_query to build params
+        _params = self.parse_query(key_filter_query=key_filter_query)
         endpoint = f"{self.model_class.__name__.lower()}"
         self._request("DELETE", endpoint, params=_params)

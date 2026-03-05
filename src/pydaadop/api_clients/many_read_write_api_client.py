@@ -172,3 +172,31 @@ class ManyReadWriteApiClient(ReadWriteApiClient[T]):
             return
         endpoint = self.model_class.__name__.lower() + "-delete-many"
         self._request("DELETE", endpoint, json=items)
+
+    
+    def delete_many(self, items: List[T]) -> None:
+        """
+        Deletes multiple items from the database.
+
+        Args:
+            items (List[dict]): The items to be deleted.
+
+        Example:
+            items = [{"id": "123"}, {"id": "456"}]
+            client.delete_many(items)
+        """
+        if not items or len(items) == 0:
+            return
+        items = [item for item in items if item != {}]
+        if not items or len(items) == 0:
+            return
+        
+        # build the keys
+        keys = []
+        for item in items:
+            try:
+                keys.append(item.model_dump_keys())
+            except Exception:
+                pass
+        
+        return self.delete_many(keys)

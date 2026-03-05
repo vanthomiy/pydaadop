@@ -49,7 +49,7 @@ class BaseApiClient(Generic[T]):
         return response.json()
 
     @classmethod
-    def parse_query(cls,
+    def _parse_query(cls,
                 select_query: Optional[BaseSelect] = None,
                 paging_query: Optional[BasePaging] = None,
                 filter_query: Optional[Dict[str, Any]] = None,
@@ -127,7 +127,7 @@ class BaseApiClient(Generic[T]):
         Example:
             display_info = self.get_display_info(filter_query={"name": "example"})
         """
-        _params = self.parse_query(None, None, filter_query, None, search_query, range_query)
+        _params = self._parse_query(None, None, filter_query, None, search_query, range_query)
         return self._request("GET", f"{self.model_class.__name__.lower()}/display-info/item", params=_params)
 
     def get_all(self,
@@ -154,7 +154,7 @@ class BaseApiClient(Generic[T]):
         Example:
             items = self.get_all(filter_query={"name": "example"})
         """
-        _params = self.parse_query(None, paging_query, filter_query, sort_query, search_query, range_query, list_filter)
+        _params = self._parse_query(None, paging_query, filter_query, sort_query, search_query, range_query, list_filter)
 
         data = self._request("GET", f"{self.model_class.__name__.lower()}", params=_params)
         return [self.model_class(**item) for item in data]
@@ -185,7 +185,7 @@ class BaseApiClient(Generic[T]):
         Example:
             items = self.get_all_select(select_query=BaseSelect(fields=["name"]))
         """
-        _params = self.parse_query(select_query, paging_query, filter_query, sort_query, search_query, range_query, list_filter)
+        _params = self._parse_query(select_query, paging_query, filter_query, sort_query, search_query, range_query, list_filter)
 
         data = self._request("GET", f"{self.model_class.__name__.lower()}/select", params=_params)
         return data
@@ -203,7 +203,7 @@ class BaseApiClient(Generic[T]):
         Example:
             exists = self.exists(key_filter_query={"id": "example_id"})
         """
-        _params = self.parse_query(key_filter_query=key_filter_query)
+        _params = self._parse_query(key_filter_query=key_filter_query)
         data = self._request("GET", f"{self.model_class.__name__.lower()}/exists", params=_params)
         return bool(**data)
 
@@ -220,6 +220,6 @@ class BaseApiClient(Generic[T]):
         Example:
             item = self.get(key_filter_query={"id": "example_id"})
         """
-        _params = self.parse_query(key_filter_query=key_filter_query)
+        _params = self._parse_query(key_filter_query=key_filter_query)
         data = self._request("GET", f"{self.model_class.__name__.lower()}/item", params=_params)
         return self.model_class(**data)
