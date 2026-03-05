@@ -4,7 +4,7 @@ from pydantic import Field
 
 from examples.models.demo_product import DemoProduct
 from examples.models.product_definition import ProductDefinition
-from pydaadop.models.base.base_mongo_model import BaseMongoModel
+from src.pydaadop.models.base.base_mongo_model import BaseMongoModel
 
 
 class ProductCategory(BaseMongoModel):

@@ -80,7 +80,7 @@ class ReadWriteApiClient(ReadApiClient[T]):
         if isinstance(key_filter_query, str):
             key_filter_query = {"_id": key_filter_query}
 
-        # Use the public parse_query to build params
-        _params = self.parse_query(key_filter_query=key_filter_query)
+        # Build params using the shared parser
+        _params = self._parse_query(key_filter_query=key_filter_query)
         endpoint = f"{self.model_class.__name__.lower()}"
         self._request("DELETE", endpoint, params=_params)

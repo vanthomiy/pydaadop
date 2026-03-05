@@ -1,4 +1,4 @@
-from pydaadop.models.base.base_mongo_model import BaseMongoModel
+from src.pydaadop.models.base.base_mongo_model import BaseMongoModel
 
 
 class Buyer(BaseMongoModel):
