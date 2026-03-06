@@ -1,51 +1,34 @@
-version: "3.8"
-
 services:
-  mongo:
-    image: mongo:6.0
-    restart: unless-stopped
-    # Publish the MongoDB port to the host on 27018 -> container 27017
-    # (host 27018 used to avoid conflict with a local Mongo installation)
+  extended-setup-api:
+    build:
+      context: .
+      dockerfile: api.Dockerfile
+    container_name: pydaadop-quick-example-api
     ports:
-      - "27018:27017"
+      - 8000:8000
+    env_file:
+      - example.env
+    networks:
+      - pydaadop-quick-example-network
+
+  quick-setup-mongo:
+    image: mongo:latest
+    command: mongod --port ${MONGO_PORT}
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
+    container_name: pydaadop-quick-example-mongo
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"  # Expose MongoDB on port
     volumes:
-      - mongo_data:/data/db
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    environment:
-      - MONGO_CONNECTION_STRING=mongodb://mongo:27017
-    depends_on:
-      - mongo
-    # Do not publish the app port to the host by default to avoid
-    # conflicts with local services. The app remains reachable from
-    # other services on the compose network as `http://app:8000`.
-    # Publish the app port to the host so you can access the OpenAPI docs
-    # at http://localhost:8000/docs. If this conflicts with a local service,
-    # remove the `ports` mapping.
-    expose:
-      - "8000"
-    ports:
-      - "8002:8000"
-    command: ["uvicorn", "examples.demo.api:app", "--host", "0.0.0.0", "--port", "8000"]
-
-  test-runner:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    environment:
-      - MONGO_CONNECTION_STRING=mongodb://mongo:27017
-    depends_on:
-      - mongo
-      - app
-    # Invoke the script explicitly with bash to avoid shebang/CRLF/exec issues
-    entrypoint: ["/bin/bash", "-c", "BASE_URL=http://app:8000 bash ./scripts/wait_and_test.sh"]
-    # Do not mount the host workspace into the test-runner container to avoid
-    # CRLF/shebang problems; the test image contains the necessary script files.
-    # Keep logs visible when running interactively
-    tty: true
+      - mongo_data:/data/db  # Persist MongoDB data
+    networks:
+      - pydaadop-quick-example-network
 
 volumes:
-  mongo_data:
+  mongo_data: # Define a named volume for MongoDB data persistence
+
+networks:
+  pydaadop-quick-example-network:
+    driver: bridge  # Define the network with a driver
