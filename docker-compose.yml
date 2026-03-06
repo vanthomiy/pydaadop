@@ -4,11 +4,10 @@ services:
   mongo:
     image: mongo:6.0
     restart: unless-stopped
-    # Do not publish the MongoDB port to the host by default to avoid
-    # conflicts with a locally installed MongoDB. Other containers can
-    # still reach the database on port 27017 through the Docker network.
-    expose:
-      - "27017"
+    # Publish the MongoDB port to the host on 27018 -> container 27017
+    # (host 27018 used to avoid conflict with a local Mongo installation)
+    ports:
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
 
