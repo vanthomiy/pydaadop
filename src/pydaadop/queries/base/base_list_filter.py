@@ -17,10 +17,11 @@ class BaseListFilter:
         self.key = key
         self.value = value
 
-    def to_mongo_filter(self, convert_objectid: Optional[bool] = None) -> dict:
+    def to_mongo_filter(self, convert_objectid: Optional[bool] = False) -> dict:
         """
         Convert the filter to a MongoDB filter.
-
+        Args:
+            convert_objectid (Optional[bool]): Whether to convert string values to ObjectId. If None, it will heuristically convert strings that look like ObjectIds.
         Returns:
             dict: The MongoDB filter.
         """
