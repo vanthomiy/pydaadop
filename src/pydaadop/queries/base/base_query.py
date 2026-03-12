@@ -98,11 +98,16 @@ class BaseQuery:
         Returns:
             list | None: The list of allowed values or None.
         """
+        # Handle direct Literal[...] annotations
         if get_origin(annotation) == Literal:
             return list(get_args(annotation))
 
-        args = get_args(annotation)
+        # Handle Enum types (including str/IntEnum subclasses)
+        if isinstance(annotation, type) and issubclass(annotation, Enum):
+            return [member.value for member in annotation]
 
+        # Unwrap typing constructs like Optional[Enum] or Union[Enum, None]
+        args = get_args(annotation)
         if args and args[0]:
             return cls._get_allowed_values(args[0])
 
