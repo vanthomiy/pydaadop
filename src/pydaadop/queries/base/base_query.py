@@ -1,6 +1,18 @@
 # Create a type variable for the model
 from enum import Enum
-from typing import TypeVar, Type, Optional, Any, Dict, get_type_hints, List, Tuple, get_origin, get_args, Literal
+from typing import (
+    TypeVar,
+    Type,
+    Optional,
+    Any,
+    Dict,
+    get_type_hints,
+    List,
+    Tuple,
+    get_origin,
+    get_args,
+    Literal,
+)
 
 from bson import ObjectId
 from fastapi import Query
@@ -10,9 +22,15 @@ from .base_range import BaseRange
 from .base_search import BaseSearch
 from .base_select import BaseSelect
 from ...models.base import BaseMongoModel
-from ...models.display.display_query_info import DisplayFilterInfo, DisplayFilterAttributeInfo, DisplaySortInfo, \
-    DisplaySortAttributeInfo, DisplayQueryInfo
+from ...models.display.display_query_info import (
+    DisplayFilterInfo,
+    DisplayFilterAttributeInfo,
+    DisplaySortInfo,
+    DisplaySortAttributeInfo,
+    DisplayQueryInfo,
+)
 from ...queries.base.base_sort import BaseSort
+
 
 class BaseQuery:
     """
@@ -22,8 +40,14 @@ class BaseQuery:
         supported_types (list): List of supported types for queries.
         supported_selectable_types (list): List of supported selectable types for queries.
     """
-    supported_types = [str, int, float]
-    supported_selectable_types = [bool]
+
+    # basic scalar types we recognise in annotations
+    supported_types = [str, int, float, bool]
+    # types that are considered "selectable" / filterable when creating
+    # the public filter model (only_selectable=True). Add `str` so string
+    # fields become filterable (treated as contains) and keep `bool` so
+    # boolean fields are exposed as filters.
+    supported_selectable_types = [bool, str]
 
     @classmethod
     def _get_type(cls, annotation: Any) -> Tuple[type | None, bool]:
@@ -66,7 +90,9 @@ class BaseQuery:
         return None, False
 
     @classmethod
-    def _is_supported_type(cls, field_type: type, is_selectable: bool, name: str, only_selectable: True) -> bool:
+    def _is_supported_type(
+        cls, field_type: type, is_selectable: bool, name: str, only_selectable: True
+    ) -> bool:
         """
         Check if the field type is supported.
 
@@ -82,7 +108,11 @@ class BaseQuery:
         if not only_selectable:
             return True
 
-        if name.endswith("_id") or is_selectable or field_type in cls.supported_selectable_types:
+        if (
+            name.endswith("_id")
+            or is_selectable
+            or field_type in cls.supported_selectable_types
+        ):
             return True
 
         return False
@@ -111,10 +141,18 @@ class BaseQuery:
         if args and args[0]:
             return cls._get_allowed_values(args[0])
 
+        # Booleans: present a 3-state chooser in display metadata (any/true/false)
+        # Represented as strings for consistency with other allowed_values usage.
+        origin = get_origin(annotation) or annotation
+        if origin is bool:
+            return ["any", "true", "false"]
+
         return None
 
     @classmethod
-    def get_fields_of_model(cls, model: Type[BaseModel], only_selectable=True) -> Dict[str, Any]:
+    def get_fields_of_model(
+        cls, model: Type[BaseModel], only_selectable=True
+    ) -> Dict[str, Any]:
         """
         Get the fields of the model.
 
@@ -145,7 +183,9 @@ class BaseQuery:
 
             # Ensure all annotations are identical
             for annotation in annotations:
-                assert annotation == base_annotation, f"{name} has different types in the models"
+                assert annotation == base_annotation, (
+                    f"{name} has different types in the models"
+                )
 
             # Make the field optional and add to field overrides
             field_overrides[name] = (Optional[base_annotation], Query(None))
@@ -153,7 +193,9 @@ class BaseQuery:
         return field_overrides
 
     @classmethod
-    def create_filter(cls, models: list[Type[BaseModel]], only_selectable=True) -> Type[BaseModel]:
+    def create_filter(
+        cls, models: list[Type[BaseModel]], only_selectable=True
+    ) -> Type[BaseModel]:
         """
         Create a filter model for the given models.
 
@@ -201,7 +243,9 @@ class BaseQuery:
         return query_model
 
     @classmethod
-    def split_filter(cls, models: list[Type[BaseModel]], filter_data: Dict) -> List[Dict]:
+    def split_filter(
+        cls, models: list[Type[BaseModel]], filter_data: Dict
+    ) -> List[Dict]:
         """
         Split the filter data into the different models based on the keys which represent the model fields.
 
@@ -224,7 +268,9 @@ class BaseQuery:
         return split_filter_data
 
     @classmethod
-    def split_sort(cls, models: list[Type[BaseModel]], sort_model: BaseSort) -> List[BaseSort | None]:
+    def split_sort(
+        cls, models: list[Type[BaseModel]], sort_model: BaseSort
+    ) -> List[BaseSort | None]:
         """
         Split the sort model into the different models based on the sort_by field.
 
@@ -245,12 +291,16 @@ class BaseQuery:
         # find the first model that has the sort_by field
         for i, model in enumerate(models):
             if sort_by in get_type_hints(model):
-                return [BaseSort(sort_by=sort_by, sort_order=sort_model.sort_order) if j == i else None for j in range(len(models))]
+                return [
+                    BaseSort(sort_by=sort_by, sort_order=sort_model.sort_order)
+                    if j == i
+                    else None
+                    for j in range(len(models))
+                ]
 
         # If the sort_by field does not exist on any of the provided models,
         # return a list of Nones to indicate no cross-model sort can be applied.
         return [None for _ in range(len(models))]
-
 
     @classmethod
     def extract_filter(cls, filter_model: BaseModel, exclude=True) -> dict:
@@ -264,10 +314,58 @@ class BaseQuery:
         Returns:
             dict: The extracted filter data.
         """
-        filter_data = filter_model.model_dump(exclude_none=exclude, exclude_unset=exclude, exclude_defaults=exclude)
+        # Dump the provided pydantic filter model to a dict. We then post-process
+        # certain scalar types so that the resulting dict is a MongoDB-friendly
+        # query. In particular:
+        # - string fields (plain str annotation, not Literal/Enum) become
+        #   case-insensitive contains queries using $regex
+        # - boolean fields are left as booleans (client-side may provide True/False)
+        filter_data = filter_model.model_dump(
+            exclude_none=exclude, exclude_unset=exclude, exclude_defaults=exclude
+        )
 
+        # Remap public "id" to MongoDB "_id"
         if "id" in filter_data:
             filter_data["_id"] = filter_data.pop("id")
+
+        # Get the annotations from the dynamic filter model class so we can
+        # reason about the declared type for each field.
+        try:
+            model_hints = get_type_hints(filter_model.__class__)
+        except Exception:
+            model_hints = {}
+
+        # Post-process fields
+        for key, val in list(filter_data.items()):
+            # Skip empty / unset values
+            if val is None:
+                continue
+
+            annotation = model_hints.get(key)
+            if not annotation:
+                continue
+
+            field_type, _ = cls._get_type(annotation)
+            allowed_values = cls._get_allowed_values(annotation)
+
+            # Strings: if there are no enumerated allowed values, treat the
+            # provided value as a case-insensitive contains filter.
+            if field_type is str and isinstance(val, str) and not allowed_values:
+                s = val.strip()
+                if s == "":
+                    # effectively ignore empty string filters
+                    filter_data.pop(key, None)
+                else:
+                    filter_data[key] = {"$regex": s, "$options": "i"}
+
+            # Booleans: accept True/False as-is; if a client somehow provided
+            # the string "any", treat it as no-op (remove filter)
+            elif field_type is bool:
+                if isinstance(val, str):
+                    if val.lower() == "any":
+                        filter_data.pop(key, None)
+                    elif val.lower() in ("true", "false"):
+                        filter_data[key] = val.lower() == "true"
 
         return filter_data
 
@@ -282,16 +380,24 @@ class BaseQuery:
         Returns:
             dict: The extracted range data.
         """
-        if not range_model.range_by or not (range_model.gte_value or range_model.lte_value):
+        if not range_model.range_by or not (
+            range_model.gte_value or range_model.lte_value
+        ):
             return {}
 
         range_dict = {range_model.range_by: {}}
         if range_model.gte_value:
-            range_dict[range_model.range_by]["$gte"] = int(
-                range_model.gte_value) if range_model.gte_value.isdigit() else range_model.gte_value
+            range_dict[range_model.range_by]["$gte"] = (
+                int(range_model.gte_value)
+                if range_model.gte_value.isdigit()
+                else range_model.gte_value
+            )
         if range_model.lte_value:
-            range_dict[range_model.range_by]["$lte"] = int(
-                range_model.lte_value) if range_model.lte_value.isdigit() else range_model.lte_value
+            range_dict[range_model.range_by]["$lte"] = (
+                int(range_model.lte_value)
+                if range_model.lte_value.isdigit()
+                else range_model.lte_value
+            )
 
         return range_dict
 
@@ -322,14 +428,14 @@ class BaseQuery:
         class CustomSort(BaseSort):
             # Dynamically define the sort_by field based on filterable_fields
             sort_by: Optional[sort_by_literal] = Query(
-                default=None,
-                description="Field to sort by"
+                default=None, description="Field to sort by"
             )
 
         return create_model(
             f"{model_name}Sort",  # Set the name dynamically
-            __base__=CustomSort  # Inherit from BaseRange
+            __base__=CustomSort,  # Inherit from BaseRange
         )
+
     @classmethod
     def create_range(cls, models: list[Type[BaseModel]]) -> Type[BaseRange]:
         """
@@ -357,16 +463,14 @@ class BaseQuery:
         class CustomRange(BaseRange):
             # Dynamically define the sort_by field based on filterable_fields
             range_by: Optional[sort_by_literal] = Query(
-                default=None,
-                description="Field to slect range by"
+                default=None, description="Field to slect range by"
             )
             __name__ = f"{model_name}Range"
 
         return create_model(
             f"{model_name}Range",  # Set the name dynamically
-            __base__=CustomRange  # Inherit from BaseRange
+            __base__=CustomRange,  # Inherit from BaseRange
         )
-
 
     @classmethod
     def create_select(cls, models: list[Type[BaseModel]]) -> Type[BaseSelect]:
@@ -397,15 +501,13 @@ class BaseQuery:
         class CustomSelect(BaseSelect):
             # Dynamically define the select field based on selectable_fields
             selected_field: Optional[selectable_fields_literal] = Query(
-                default=None,
-                description="Field to select"
+                default=None, description="Field to select"
             )
 
         return create_model(
             f"{model_name}Select",  # Set the name dynamically
-            __base__=CustomSelect  # Inherit from BaseRange
+            __base__=CustomSelect,  # Inherit from BaseRange
         )
-
 
     @classmethod
     def extract_search(cls, model: Type[BaseModel], search_model: BaseSearch) -> Dict:
@@ -428,7 +530,8 @@ class BaseQuery:
 
         search_query = {
             "$or": [
-                {field: {"$regex": search_model.search, "$options": "i"}} for field in searchable_field_names
+                {field: {"$regex": search_model.search, "$options": "i"}}
+                for field in searchable_field_names
             ]
         }
 
@@ -457,20 +560,34 @@ class BaseQuery:
                 continue
 
             allowed_values = cls._get_allowed_values(annotation)
+            # Decide how the front-end should present this filter attribute.
+            # Strings (non-enum) are presented as a "contains" filter; booleans
+            # get a three-state chooser (any/true/false).
+            if field_type is str and not allowed_values:
+                type_name = "contains"
+            else:
+                type_name = field_type.__name__
+
+            if field_type is bool:
+                # Override allowed values for booleans to indicate the 3-state
+                # choice the UI can present. Stored as strings for consistency.
+                allowed_values = ["any", "true", "false"]
 
             # Create the filter attribute info
             filter_attribute = DisplayFilterAttributeInfo(
                 name=name,
-                type=field_type.__name__,
+                type=type_name,
                 allowed_values=allowed_values,
-                parent=model.__name__
+                parent=model.__name__,
             )
             filter_attributes.append(filter_attribute)
 
         return DisplayFilterInfo(filter_attributes=filter_attributes)
 
     @classmethod
-    def combine_display_filter_info(cls, info_filters: list[DisplayFilterInfo]) -> DisplayFilterInfo:
+    def combine_display_filter_info(
+        cls, info_filters: list[DisplayFilterInfo]
+    ) -> DisplayFilterInfo:
         """
         Combine multiple display filter info objects into one.
 
@@ -491,7 +608,9 @@ class BaseQuery:
         return combined_filter_info
 
     @classmethod
-    def combine_display_sort_info(cls, info_sorts: list[DisplaySortInfo]) -> DisplaySortInfo:
+    def combine_display_sort_info(
+        cls, info_sorts: list[DisplaySortInfo]
+    ) -> DisplaySortInfo:
         """
         Combine multiple display sort info objects into one.
 
@@ -512,7 +631,9 @@ class BaseQuery:
         return combined_sort_info
 
     @classmethod
-    def combine_display_query_info(cls, info_queries: list[DisplayQueryInfo]) -> DisplayQueryInfo:
+    def combine_display_query_info(
+        cls, info_queries: list[DisplayQueryInfo]
+    ) -> DisplayQueryInfo:
         """
         Combine multiple display query info objects into one.
 
@@ -523,8 +644,12 @@ class BaseQuery:
             DisplayQueryInfo: The combined display query info.
         """
         combined_query_info = DisplayQueryInfo(
-            filter_info=cls.combine_display_filter_info([info_query.filter_info for info_query in info_queries]),
-            sort_info=cls.combine_display_sort_info([info_query.sort_info for info_query in info_queries])
+            filter_info=cls.combine_display_filter_info(
+                [info_query.filter_info for info_query in info_queries]
+            ),
+            sort_info=cls.combine_display_sort_info(
+                [info_query.sort_info for info_query in info_queries]
+            ),
         )
         return combined_query_info
 
@@ -542,13 +667,9 @@ class BaseQuery:
         filter_model = cls.create_filter([model], only_selectable=False)
         filterable_fields = cls.extract_filter(filter_model(), exclude=False)
         # only take the keys
-        filterable_fields_names = [DisplaySortAttributeInfo(name=str(key), parent=model.__name__) for key in filterable_fields.keys()]
+        filterable_fields_names = [
+            DisplaySortAttributeInfo(name=str(key), parent=model.__name__)
+            for key in filterable_fields.keys()
+        ]
 
         return DisplaySortInfo(sort_attributes=filterable_fields_names)
-
-
-
-
-
-
-
