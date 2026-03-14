@@ -3,13 +3,16 @@ from typing import Type, TypeVar, Generic, Dict, Any, List, Optional, Union
 from fastapi import Depends
 
 from ..queries.base.base_range import BaseRange
-from requests import request, Response
 
 from ..models.base import BaseMongoModel
 from ..queries.base.base_list_filter import BaseListFilter
 from ..queries.base.base_paging import BasePaging
 from ..queries.base.base_select import BaseSelect
 from ..queries.base.base_sort import BaseSort
+
+import requests
+from requests import Response
+from requests.adapters import HTTPAdapter
 
 T = TypeVar("T", bound=BaseMongoModel)
 
@@ -22,31 +25,38 @@ class BaseApiClient(Generic[T]):
         model_class (Type[T]): The model class to be used.
         headers (Dict[str, str], optional): Additional headers for the requests.
     """
+    # Shared across ALL client instances — one connection pool for localhost
+    _session: requests.Session | None = None
+
+    @classmethod
+    def _get_session(cls) -> requests.Session:
+        if cls._session is None:
+            cls._session = requests.Session()
+            cls._session.mount("http://", HTTPAdapter(
+                pool_connections=2,
+                pool_maxsize=8,
+                max_retries=3,
+            ))
+            cls._session.mount("https://", HTTPAdapter(
+                pool_connections=4,
+                pool_maxsize=16,
+                max_retries=3,
+            ))
+        return cls._session
 
     def __init__(self, base_url: str, model_class: Type[T], headers: Dict[str, str] = None):
         self.base_url = base_url
         self.model_class = model_class
         self.headers = headers or {}
 
-    def _request(self, method: str, endpoint: str, **kwargs: dict) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
-        """
-        Sends a request to the API.
-
-        Args:
-            method (str): The HTTP method to use.
-            endpoint (str): The API endpoint.
-            **kwargs: Additional arguments for the request.
-
-        Returns:
-            Union[Dict[str, Any], List[Dict[str, Any]]]: The response data from the API.
-
-        Example:
-            response = self._request("GET", "my_model")
-        """
+    def _request(self, method: str, endpoint: str, **kwargs) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         url = f"{self.base_url}/{endpoint}/"
-        response: Response = request(method, url, headers=self.headers, **kwargs)
+        response: Response = self._get_session().request(
+            method, url, headers=self.headers, **kwargs
+        )
         response.raise_for_status()
         return response.json()
+
 
     @classmethod
     def _parse_query(cls,
