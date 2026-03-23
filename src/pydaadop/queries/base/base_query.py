@@ -15,6 +15,7 @@ from typing import (
 )
 
 from bson import ObjectId
+import re
 from fastapi import Query
 from pydantic import create_model, BaseModel
 
@@ -348,15 +349,41 @@ class BaseQuery:
             field_type, _ = cls._get_type(annotation)
             allowed_values = cls._get_allowed_values(annotation)
 
-            # Strings: if there are no enumerated allowed values, treat the
-            # provided value as a case-insensitive contains filter.
-            if field_type is str and isinstance(val, str) and not allowed_values:
-                s = val.strip()
-                if s == "":
-                    # effectively ignore empty string filters
-                    filter_data.pop(key, None)
-                else:
-                    filter_data[key] = {"$regex": s, "$options": "i"}
+            # Strings: support both "is in" and "contains" semantics.
+            # Priority:
+            # 1) If client provided a list/tuple -> treat as $in.
+            # 2) If client provided a comma-separated string -> split and use $in.
+            # 3) Otherwise (single string) -> case-insensitive contains ($regex).
+            if field_type is str:
+                # If value is a list/tuple, treat as $in
+                if isinstance(val, (list, tuple)):
+                    # convert elements to strings and remove empties
+                    vals = [str(v).strip() for v in val if str(v).strip() != ""]
+                    if vals:
+                        filter_data[key] = {"$in": vals}
+                    else:
+                        filter_data.pop(key, None)
+                elif isinstance(val, str):
+                    # If there are enumerated allowed values (Literal/Enum) we
+                    # prefer exact matching / $in on comma lists, otherwise
+                    # fall back to contains.
+                    s = val.strip()
+                    if s == "":
+                        filter_data.pop(key, None)
+                    elif "," in s:
+                        parts = [p.strip() for p in s.split(",") if p.strip()]
+                        if parts:
+                            filter_data[key] = {"$in": parts}
+                        else:
+                            filter_data.pop(key, None)
+                    elif not allowed_values:
+                        # Default single-string behavior: contains (case-insensitive)
+                        # Escape the user input so it's treated as a literal
+                        # substring match and cannot inject regex metacharacters.
+                        filter_data[key] = {"$regex": re.escape(s), "$options": "i"}
+                    else:
+                        # allowed_values present (Literal/Enum) -> exact match
+                        filter_data[key] = s
 
             # Booleans: accept True/False as-is; if a client somehow provided
             # the string "any", treat it as no-op (remove filter)
@@ -528,9 +555,11 @@ class BaseQuery:
         # only take the keys
         searchable_field_names = [str(key) for key in searchable_fields.keys()]
 
+        # Escape the search string to avoid treating user input as a regex.
+        escaped = re.escape(search_model.search)
         search_query = {
             "$or": [
-                {field: {"$regex": search_model.search, "$options": "i"}}
+                {field: {"$regex": escaped, "$options": "i"}}
                 for field in searchable_field_names
             ]
         }
