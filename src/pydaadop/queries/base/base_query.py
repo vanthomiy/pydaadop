@@ -550,21 +550,37 @@ class BaseQuery:
         """
         if not search_model.search:
             return {}
+
+        # Build list of fields we can search
         filter_model = cls.create_filter([model], only_selectable=False)
         searchable_fields = cls.extract_filter(filter_model(), exclude=False)
-        # only take the keys
         searchable_field_names = [str(key) for key in searchable_fields.keys()]
 
-        # Escape the search string to avoid treating user input as a regex.
-        escaped = re.escape(search_model.search)
-        search_query = {
-            "$or": [
-                {field: {"$regex": escaped, "$options": "i"}}
+        if not searchable_field_names:
+            return {}
+
+        # Split the search string into tokens. Treat commas or whitespace as
+        # separators so queries like "walter white" or "walter, white" become
+        # two tokens that must both match (AND), but may match different fields (OR).
+        raw = search_model.search
+        tokens = [t.strip() for t in re.split(r"[\s,]+", raw) if t.strip()]
+        if not tokens:
+            return {}
+
+        # For each token produce an OR across all searchable fields; then
+        # require all tokens to match by combining with AND.
+        clauses = []
+        for tok in tokens:
+            esc = re.escape(tok)
+            or_clause = [
+                {field: {"$regex": esc, "$options": "i"}}
                 for field in searchable_field_names
             ]
-        }
+            clauses.append({"$or": or_clause})
 
-        return search_query
+        if len(clauses) == 1:
+            return clauses[0]
+        return {"$and": clauses}
 
     @classmethod
     def create_display_filter_info(cls, model: Type[BaseModel]) -> DisplayFilterInfo:
